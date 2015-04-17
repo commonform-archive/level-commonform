@@ -14,7 +14,7 @@ module.exports = function(sublevel, chunk) {
           predicate: predicate,
           object: object,
           depth: depth
-        }).map(function(key) {
+        }, '\xff\xff').map(function(key) {
           return {
             prefix: sublevel._graph,
             type: 'put',
@@ -24,22 +24,58 @@ module.exports = function(sublevel, chunk) {
         });
       };
 
-      if (predicate.definition(element)) {
-        return operations.concat(permutationsOf(
-          digest, 'defines', element.definition, 0
-        ));
+      if (predicate.child(element)) {
+        return operations
+          .concat(permutationsOf(digest, 'includes', child.form, 0))
+          .concat(
+            element.hasOwnProperty('heading') ?
+              permutationsOf(digest, 'utilizes', element.heading, 0) :
+              []
+          );
+      } else if (predicate.definition(element)) {
+        return operations
+          .concat([{
+            prefix: sublevel._terms,
+            type: 'put',
+            key: element.definition,
+            value: ''
+          }])
+          .concat(permutationsOf(
+            digest, 'defines', element.definition, 0
+          ));
       } else if (predicate.use(element)) {
-        return operations.concat(permutationsOf(
-          digest, 'uses', element.use, 0
-        ));
+        return operations
+          .concat([{
+            prefix: sublevel._terms,
+            type: 'put',
+            key: element.use,
+            value: element.use
+          }])
+          .concat(permutationsOf(
+            digest, 'uses', element.use, 0
+          ));
       } else if (predicate.blank(element)) {
-        return operations.concat(permutationsOf(
-          digest, 'inserts', element.blank, 0
-        ));
+        return operations
+          .concat([{
+            prefix: sublevel._blanks,
+            type: 'put',
+            key: element.blank,
+            value: element.blank
+          }])
+          .concat(permutationsOf(
+            digest, 'inserts', element.blank, 0
+          ));
       } else if (predicate.reference(element)) {
-        return operations.concat(permutationsOf(
-          digest, 'references', element.reference, 0
-        ));
+        return operations
+          .concat([{
+            prefix: sublevel._headings,
+            type: 'put',
+            key: element.reference,
+            value: element.reference
+          }])
+          .concat(permutationsOf(
+            digest, 'references', element.reference, 0
+          ));
       }
     }
   }, [{

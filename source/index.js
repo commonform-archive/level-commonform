@@ -4,9 +4,9 @@ var amplify = require('./amplify');
 var normalize = require('commonform-normalize');
 var WriteStream = require('level-write-stream');
 
-var SUBLEVELS = [
-  'blanks', 'digests', 'forms', 'graph', 'headings', 'terms'
-];
+var STRING_SUBLEVELS = ['blanks', 'digests', 'headings', 'terms'];
+var OBJECT_SUBLEVELS = ['forms', 'graph'];
+var SUBLEVELS = STRING_SUBLEVELS.concat(OBJECT_SUBLEVELS);
 
 function CommonFormLibrary(db) {
   if (!(this instanceof CommonFormLibrary)) {
@@ -22,28 +22,32 @@ function CommonFormLibrary(db) {
 
 var prototype = CommonFormLibrary.prototype;
 
-prototype.createFormWriteStream = function() {
+prototype.createFormsWriteStream = function() {
   var thisSublevel = this;
   var transform = through.obj(function(form, encoding, callback) {
     // Normalized the form.
     var normalized = normalize(form);
     var digest = normalized.root;
+
     // Prepare a chunk for streaming.
     var chunk = {digest: digest, form: form};
+
     // Amplify the chunk into an array of levelup batch operations.
     var amplified = amplify(thisSublevel, chunk);
     var thisTransform = this;
+
     // Stream each operation.
     amplified.forEach(function(operation) {
       thisTransform.push(operation);
     });
+
     callback();
   });
   transform.pipe(this._createSublevelWriteStream());
   return transform;
 };
 
-prototype.createFormReadStream = function() {
+prototype.createFormsReadStream = function() {
   return this._forms.createReadStream()
     .pipe(through.obj(function(chunk, encoding, callback) {
       this.push({
@@ -54,13 +58,19 @@ prototype.createFormReadStream = function() {
     }));
 };
 
-prototype.createTermReadStream = function() {
-  return this._terms.createReadStream()
-    .pipe(thorugh.obj(function(chunk, encoding, callback) {
-      this.push(chunk.value);
+STRING_SUBLEVELS.forEach(function(sublevelName) {
+  var capitalized = (
+    sublevelName[0].toUpperCase() + sublevelName.slice(1)
+  );
+  prototype['create' + capitalized + 'ReadStream'] = function() {
+    var transform = through.obj(function(chunk, encoding, callback) {
+      this.push(chunk);
       callback();
-    }));
-}
+    });
+    this['_' + sublevelName].createKeyStream().pipe(transform);
+    return transform;
+  };
+});
 
 module.exports = CommonFormLibrary;
 
