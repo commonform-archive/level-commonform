@@ -6,18 +6,22 @@ var memdown = require('memdown');
 var Library = require('..');
 
 describe('Errors', function() {
-  it('for invalid forms', function() {
+  beforeEach(function() {
     var library = new Library(levelup({db: memdown}));
-    var stream = library.createFormsWriteStream();
+    this.writeStream = library.createFormsWriteStream();
+  });
+
+  it('for invalid forms', function(done) {
     var caughtError = false;
-    stream
+    this.writeStream
       .on('error', function(error) {
         caughtError = true;
         expect(error.message).to.equal('Invalid form');
       })
       .on('finish', function() {
         expect(caughtError).to.equal(true);
-      });
-    stream.end({content: [{invalid: 'content'}]});
+        done();
+      })
+      .end({content: [{invalid: 'content'}]});
   });
 });
