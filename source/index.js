@@ -1,24 +1,21 @@
+var capitalize = require('capitalize');
 var normalize = require('commonform-normalize');
-var sublevel = require('level-sublevel');
+var serialize = require('commonform-serialize');
 var through = require('through2');
-var writeStream = require('level-write-stream');
 
 var amplify = require('./amplify');
 
-var STRING_SUBLEVELS = ['blanks', 'digests', 'headings', 'terms'];
-var OBJECT_SUBLEVELS = ['forms', 'relationships'];
-var SUBLEVELS = STRING_SUBLEVELS.concat(OBJECT_SUBLEVELS);
+var SEPARATOR = '\xff\xff';
+var utf8Encoding = {
+  keyEncoding: 'utf8',
+  valueEncoding: 'utf8'
+};
 
 function CommonFormLibrary(levelup) {
   if (!(this instanceof CommonFormLibrary)) {
     return new CommonFormLibrary(levelup);
   }
-  var thisLibrary = this;
-  var database = sublevel(levelup);
-  SUBLEVELS.forEach(function(sublevelName) {
-    thisLibrary['_' + sublevelName] = database.sublevel(sublevelName);
-  });
-  thisLibrary._createSublevelWriteStream = writeStream(database);
+  this.database = levelup;
 }
 
 var prototype = CommonFormLibrary.prototype;
@@ -27,38 +24,47 @@ prototype.createFormsWriteStream = function() {
   var library = this;
   var transform = through.obj(function(form, encoding, callback) {
     var digest = normalize(form).root;
-    amplify(library, digest, form)
-      .concat([{
-        type: 'put',
-        key: 'something',
-        value: 'not empty'
-      }])
+    amplify(library, digest, form, SEPARATOR)
       .forEach(this.push.bind(this));
     callback();
   });
-  transform.pipe(this._createSublevelWriteStream());
+  transform.pipe(this.database.createWriteStream(utf8Encoding));
   return transform;
 };
 
 prototype.createFormsReadStream = function() {
-  return this._forms.createReadStream()
+  var prefix = 'forms' + SEPARATOR;
+  return this.database.createReadStream({
+    keys: true,
+    values: true,
+    gt: prefix,
+    lt: prefix + SEPARATOR
+  })
     .pipe(through.obj(function(chunk, encoding, callback) {
-      this.push({digest: chunk.key, form: JSON.parse(chunk.value)});
+      this.push({
+        digest: chunk.key.slice(prefix.length),
+        form: serialize.parse(chunk.value)
+      });
       callback();
     }));
 };
 
-STRING_SUBLEVELS.forEach(function(sublevelName) {
-  var capitalized = (
-    sublevelName[0].toUpperCase() + sublevelName.slice(1)
-  );
-  var functionName = 'create' + capitalized + 'ReadStream';
+var STRING_TYPES = ['digests', 'terms', 'headings', 'blanks'];
+
+STRING_TYPES.forEach(function(sublevelName) {
+  var functionName = 'create' + capitalize(sublevelName) + 'ReadStream';
+  var prefix = sublevelName + SEPARATOR;
   prototype[functionName] = function() {
     var transform = through.obj(function(chunk, encoding, callback) {
-      this.push(chunk);
+      this.push(chunk.slice(prefix.length));
       callback();
     });
-    this['_' + sublevelName].createKeyStream().pipe(transform);
+    this.database.createReadStream({
+      keys: true,
+      values: false,
+      gt: prefix,
+      lt: prefix + SEPARATOR
+    }).pipe(transform);
     return transform;
   };
 });

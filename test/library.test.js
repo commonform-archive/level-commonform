@@ -16,20 +16,28 @@ describe('Library', function() {
     expect(Library).to.be.a('function');
   });
 
+  var simpleForm = {content: ['A test form']};
+  var simpleFormDigest =
+    '7ed74ba4256e2e7db587c6bb4ade316ab7150f8ce6e1115b6e8566e00de86abf';
+
   it('stores and reproduces forms', function(done) {
     var lib = this.lib;
-    var form = {content: ['A test form']};
-    lib.createFormsWriteStream().end(form, function() {
-      lib._forms.createReadStream().pipe(concat(obj, function(data) {
-        expect(data).to.eql([form]);
+    var result = {digest: simpleFormDigest, form: simpleForm};
+    lib.createFormsWriteStream().end(simpleForm, function() {
+      lib.createFormsReadStream().pipe(concat(obj, function(data) {
+        expect(data).to.eql([result]);
         done();
       }));
-      // lib.createFormsReadStream().pipe(concat(obj, function(data) {
-      //   expect(data).to.be.an('array');
-      //   expect(data.length).to.equal(1);
-      //   expect(data[0].form).to.eql(form);
-      //   done();
-      // }));
+    });
+  });
+
+  it('stores and reproduces digests', function(done) {
+    var lib = this.lib;
+    lib.createFormsWriteStream().end(simpleForm, function() {
+      lib.createDigestsReadStream().pipe(concat(obj, function(data) {
+        expect(data).to.eql([simpleFormDigest]);
+        done();
+      }));
     });
   });
 

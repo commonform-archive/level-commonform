@@ -1,9 +1,10 @@
 var predicate = require('commonform-predicate');
+var serialize = require('commonform-serialize');
 var permute = require('./permute');
 
 var PLACEHOLDER_STRING = ' ';
 
-module.exports = function(library, digest, form) {
+module.exports = function(library, digest, form, separator) {
   return form.content.reduce(function(operations, element) {
     if (predicate.text(element)) {
       return operations;
@@ -14,12 +15,11 @@ module.exports = function(library, digest, form) {
           predicate: predicate,
           object: object,
           depth: depth
-        }, '\xff\xff').map(function(key) {
+        }, separator).map(function(key) {
           return {
-            prefix: library._relationships,
             type: 'put',
-            key: key,
-            value: JSON.stringify(form)
+            key: 'relationships' + separator + key,
+            value: serialize.stringify(form)
           };
         });
       };
@@ -35,9 +35,8 @@ module.exports = function(library, digest, form) {
       } else if (predicate.definition(element)) {
         return operations
           .concat([{
-            prefix: library._terms,
             type: 'put',
-            key: element.definition,
+            key: 'terms' + separator + element.definition,
             value: PLACEHOLDER_STRING
           }])
           .concat(permutationsOf(
@@ -46,10 +45,9 @@ module.exports = function(library, digest, form) {
       } else if (predicate.use(element)) {
         return operations
           .concat([{
-            prefix: library._terms,
             type: 'put',
-            key: element.use,
-            value: element.use
+            key: 'terms' + separator + element.use,
+            value: PLACEHOLDER_STRING
           }])
           .concat(permutationsOf(
             digest, 'uses', element.use, 0
@@ -57,10 +55,9 @@ module.exports = function(library, digest, form) {
       } else if (predicate.blank(element)) {
         return operations
           .concat([{
-            prefix: library._blanks,
             type: 'put',
-            key: element.blank,
-            value: element.blank
+            key: 'blanks' + separator + element.blank,
+            value: PLACEHOLDER_STRING
           }])
           .concat(permutationsOf(
             digest, 'inserts', element.blank, 0
@@ -68,10 +65,9 @@ module.exports = function(library, digest, form) {
       } else if (predicate.reference(element)) {
         return operations
           .concat([{
-            prefix: library._headings,
             type: 'put',
-            key: element.reference,
-            value: element.reference
+            key: 'headings' + separator + element.reference,
+            value: PLACEHOLDER_STRING
           }])
           .concat(permutationsOf(
             digest, 'references', element.reference, 0
@@ -80,10 +76,16 @@ module.exports = function(library, digest, form) {
         throw new Error();
       }
     }
-  }, [{
-    prefix: library._forms,
-    type: 'put',
-    key: digest,
-    value: JSON.stringify(form)
-  }]);
+  }, [
+    {
+      type: 'put',
+      key: 'forms' + separator + digest,
+      value: serialize.stringify(form)
+    },
+    {
+      type: 'put',
+      key: 'digests' + separator + digest,
+      value: PLACEHOLDER_STRING
+    }
+  ]);
 };
