@@ -6,6 +6,7 @@ var through = require('through2');
 var amplify = require('./amplify');
 
 var SEPARATOR = '\xff\xff';
+
 var utf8Encoding = {
   keyEncoding: 'utf8',
   valueEncoding: 'utf8'
@@ -59,7 +60,9 @@ STRING_TYPES.forEach(function(sublevelName) {
   var prefix = sublevelName + SEPARATOR;
   prototype[functionName] = function() {
     var transform = through.obj(function(chunk, encoding, callback) {
-      this.push(chunk.slice(prefix.length));
+      // Remove key prefixes.
+      var key = chunk.slice(prefix.length);
+      this.push(key);
       callback();
     });
     this.database.createReadStream({

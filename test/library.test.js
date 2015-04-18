@@ -20,7 +20,7 @@ describe('Library', function() {
   var simpleForm = {content: ['A test form']};
   var simpleFormDigest = normalize(simpleForm).root;
 
-  it('stores and reproduces forms', function(done) {
+  it('stores forms', function(done) {
     var lib = this.lib;
     var result = {digest: simpleFormDigest, form: simpleForm};
     lib.createFormsWriteStream().end(simpleForm, function() {
@@ -31,7 +31,7 @@ describe('Library', function() {
     });
   });
 
-  it('stores and reproduces digests', function(done) {
+  it('stores form digests', function(done) {
     var lib = this.lib;
     lib.createFormsWriteStream().end(simpleForm, function() {
       lib.createDigestsReadStream().pipe(concat(obj, function(data) {
@@ -41,7 +41,7 @@ describe('Library', function() {
     });
   });
 
-  it('stores and reproduces used terms', function(done) {
+  it('stores used terms', function(done) {
     var lib = this.lib;
     var term = 'Indemnification';
     var form = {content:[{use: term}]};
@@ -53,7 +53,7 @@ describe('Library', function() {
     });
   });
 
-  it('stores and reproduces defined terms', function(done) {
+  it('stores defined terms', function(done) {
     var lib = this.lib;
     var term = 'Indemnification';
     var form = {content:[{definition: term}]};
@@ -65,7 +65,7 @@ describe('Library', function() {
     });
   });
 
-  it('stores and reproduces referenced headings', function(done) {
+  it('stores referenced headings', function(done) {
     var lib = this.lib;
     var heading = 'Intellectual Property';
     var form = {content:[{reference: heading}]};
@@ -77,7 +77,7 @@ describe('Library', function() {
     });
   });
 
-  it('stores and reproduces inserted blanks', function(done) {
+  it('stores inserted blanks', function(done) {
     var lib = this.lib;
     var blank = 'Company Name';
     var form = {content:[{blank: blank}]};
@@ -89,7 +89,7 @@ describe('Library', function() {
     });
   });
 
-  it('stores and reproduces included children', function(done) {
+  it('stores included children', function(done) {
     var lib = this.lib;
     var child = {content: ['This is a child form']};
     var childDigest = normalize(child).root;
@@ -110,7 +110,7 @@ describe('Library', function() {
     });
   });
 
-  it('stores and reproduces utilized headings', function(done) {
+  it('stores utilized headings', function(done) {
     var lib = this.lib;
     var heading = 'Some Heading';
     var parent = {

@@ -11,13 +11,25 @@ var pushAll = function(destination, source) {
 };
 
 module.exports = function amplify(
-  digest, nestedForm, normalizedForms, separator
+  // The digest of the form to store, used to get the normalized form
+  // from `normalizedForms`
+  digest,
+  // The nested, or "native", form
+  // Forms are stored nested.
+  nestedForm,
+  // The output of `commonform-normalize`
+  normalizedForms,
+  // Separator character for compound LevelUp keys
+  separator
 ) {
   var normalized = normalizedForms[digest];
+  // Build a list of LevelUp operations for this form.
   return normalized.content.reduce(function(operations, element, index) {
     if (predicate.text(element)) {
       return operations;
     } else {
+      // Create Hexastore-style permutations of an RDF triple with an
+      // additional "depth" property.
       var permutationsOf = function(subject, predicate, object, depth) {
         return permute({
           subject: subject,
@@ -28,18 +40,21 @@ module.exports = function amplify(
           return {
             type: 'put',
             key: 'relationships' + separator + key,
+            // Store the form as the value.
             value: serialize.stringify(nestedForm)
           };
         });
       };
 
+      // A child
       if (element.hasOwnProperty('digest')) {
         var childDigest = element.digest;
-        pushAll(
-          operations, permutationsOf(digest, 'includes', childDigest, 0)
-        );
+        pushAll(operations, permutationsOf(
+          digest, 'includes', childDigest, 0
+        ));
         pushAll(operations, amplify(
           childDigest,
+          // The nested version of the child form
           nestedForm.content[index].form,
           normalizedForms,
           separator
@@ -97,15 +112,19 @@ module.exports = function amplify(
             digest, 'references', element.reference, 0
           ));
       } else {
-        throw new Error(JSON.stringify(element));
+        throw new Error(
+          'Invalid content element: ' + JSON.stringify(element)
+        );
       }
     }
   }, [
+    // The form itself
     {
       type: 'put',
       key: 'forms' + separator + digest,
       value: serialize.stringify(nestedForm)
     },
+    // The form's digest
     {
       type: 'put',
       key: 'digests' + separator + digest,
