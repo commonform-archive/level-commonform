@@ -40,8 +40,11 @@ module.exports = function amplify(
           return {
             type: 'put',
             key: 'relationships' + separator + key,
-            // Store the form as the value.
-            value: serialize.stringify(nestedForm)
+            // Store the form and its digest as the value.
+            value: serialize.stringify({
+              digest: digest,
+              form: nestedForm
+            })
           };
         });
       };

@@ -36,21 +36,52 @@ prototype.createFormsWriteStream = function() {
   return transform;
 };
 
-prototype.createFormsReadStream = function() {
-  var prefix = 'forms' + SEPARATOR;
-  return this.database.createReadStream({
-    keys: true,
-    values: true,
-    gt: prefix,
-    lt: prefix + SEPARATOR
-  })
-    .pipe(through.obj(function(chunk, encoding, callback) {
-      this.push({
-        digest: chunk.key.slice(prefix.length),
-        form: serialize.parse(chunk.value)
-      });
-      callback();
-    }));
+var partialTripleKey = function(pattern) {
+  return Object.keys(pattern)
+    .sort()
+    .reduce(function(result, key) {
+      var value = pattern[key];
+      if (
+        (key === 'subject' || key === 'object') &&
+         typeof value !== 'string'
+      ) {
+        value = normalize(value).root;
+      }
+      return result + key + SEPARATOR + value + SEPARATOR;
+    }, '');
+};
+
+prototype.createFormsReadStream = function(searchPattern) {
+  var prefix;
+  if (searchPattern) {
+    prefix = 'relationships' + SEPARATOR;
+    var suffix = partialTripleKey(searchPattern);
+    return this.database.createReadStream({
+      keys: true,
+      values: true,
+      gt: prefix + suffix,
+      lt: prefix + suffix + SEPARATOR
+    })
+      .pipe(through.obj(function(chunk, encoding, callback) {
+        this.push(serialize.parse(chunk.value));
+        callback();
+      }));
+  } else {
+    prefix = 'forms' + SEPARATOR;
+    return this.database.createReadStream({
+      keys: true,
+      values: true,
+      gt: prefix,
+      lt: prefix + SEPARATOR
+    })
+      .pipe(through.obj(function(chunk, encoding, callback) {
+        this.push({
+          digest: chunk.key.slice(prefix.length),
+          form: serialize.parse(chunk.value)
+        });
+        callback();
+      }));
+  }
 };
 
 var STRING_TYPES = ['digests', 'terms', 'headings', 'blanks'];
