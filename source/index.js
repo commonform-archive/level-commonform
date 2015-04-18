@@ -29,7 +29,9 @@ prototype.createFormsWriteStream = function() {
   var transform = through.obj(function(nestedForm, encoding, callback) {
     var thisTransform = this;
     if (!validate.form(nestedForm)) {
-      callback(new Error('Invalid form'));
+      setImmediate(function() {
+        callback(new Error('Invalid form'));
+      });
     } else {
       var normalizedForms = normalize(nestedForm);
       var rootDigest = normalizedForms.root;
@@ -57,7 +59,9 @@ prototype.createFormsWriteStream = function() {
       async.some(digests, collidesWithExisting, function(result) {
         /* istanbul ignore if -- covered by TAP test */
         if (result) {
-          callback(new Error('Hash collission'));
+          setImmediate(function() {
+            callback(new Error('Hash collission'));
+          });
         } else {
           amplify(
             rootDigest,
