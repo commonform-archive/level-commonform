@@ -2,6 +2,7 @@ var capitalize = require('capitalize');
 var normalize = require('commonform-normalize');
 var serialize = require('commonform-serialize');
 var through = require('through2');
+var validate = require('commonform-validate');
 
 var amplify = require('./amplify');
 
@@ -23,14 +24,18 @@ var prototype = CommonFormLibrary.prototype;
 
 prototype.createFormsWriteStream = function() {
   var transform = through.obj(function(nestedForm, encoding, callback) {
-    var normalizedForms = normalize(nestedForm);
-    amplify(
-      normalizedForms.root,
-      nestedForm,
-      normalizedForms,
-      SEPARATOR
-    ).forEach(this.push.bind(this));
-    callback();
+    if (!validate.form(nestedForm)) {
+      callback(new Error('Invalid form'));
+    } else {
+      var normalizedForms = normalize(nestedForm);
+      amplify(
+        normalizedForms.root,
+        nestedForm,
+        normalizedForms,
+        SEPARATOR
+      ).forEach(this.push.bind(this));
+      callback();
+    }
   });
   transform.pipe(this.database.createWriteStream(utf8Encoding));
   return transform;

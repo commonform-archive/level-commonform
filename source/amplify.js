@@ -49,7 +49,7 @@ module.exports = function amplify(
         });
       };
 
-      // A child
+      /* istanbul ignore else */
       if (element.hasOwnProperty('digest')) {
         var childDigest = element.digest;
         pushAll(operations, permutationsOf(
