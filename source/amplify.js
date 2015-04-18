@@ -1,6 +1,7 @@
 var predicate = require('commonform-predicate');
 var serialize = require('commonform-serialize');
-var permute = require('./permute');
+var relationship = require('./relationship');
+var formRelationships = require('./form-relationships');
 
 var PLACEHOLDER_STRING = ' ';
 
@@ -19,49 +20,37 @@ module.exports = function amplify(
   nestedForm,
   // The output of `commonform-normalize`
   normalizedForms,
+  // List of parent forms
+  parents,
   // Separator character for compound LevelUp keys
   separator
 ) {
   var normalized = normalizedForms[digest];
+  var result = {
+    digest: digest,
+    form: nestedForm
+  };
+
   // Build a list of LevelUp operations for this form.
   return normalized.content.reduce(function(operations, element, index) {
     if (predicate.text(element)) {
       return operations;
     } else {
-      // Create Hexastore-style permutations of an RDF triple with an
-      // additional "depth" property.
-      var permutationsOf = function(subject, predicate, object, depth) {
-        return permute({
-          subject: subject,
-          predicate: predicate,
-          object: object,
-          depth: depth
-        }, separator).map(function(key) {
-          return {
-            type: 'put',
-            key: 'relationships' + separator + key,
-            // Store the form and its digest as the value.
-            value: serialize.stringify({
-              digest: digest,
-              form: nestedForm
-            })
-          };
-        });
-      };
-
       /* istanbul ignore else */
       if (element.hasOwnProperty('digest')) {
         var childDigest = element.digest;
-        pushAll(operations, permutationsOf(
-          digest, 'includes', childDigest, 0
+        pushAll(operations, formRelationships(
+          result, parents, 'includes', childDigest, separator
         ));
         pushAll(operations, amplify(
           childDigest,
           // The nested version of the child form
           nestedForm.content[index].form,
           normalizedForms,
+          parents.concat(result),
           separator
         ));
+
         if (element.hasOwnProperty('heading')) {
           var heading = element.heading;
           pushAll(
@@ -71,11 +60,11 @@ module.exports = function amplify(
               key: 'headings' + separator + heading,
               value: PLACEHOLDER_STRING
             }]
-              .concat(permutationsOf(
-                digest, 'utilizes', heading, 0
+              .concat(formRelationships(
+                result, parents, 'utilizes', heading, separator
               ))
-              .concat(permutationsOf(
-                heading, 'summarizes', childDigest, 0
+              .concat(relationship(
+                heading, 'summarizes', childDigest, 0, result, separator
               ))
           );
         }
@@ -87,8 +76,8 @@ module.exports = function amplify(
             key: 'terms' + separator + element.definition,
             value: PLACEHOLDER_STRING
           }])
-          .concat(permutationsOf(
-            digest, 'defines', element.definition, 0
+          .concat(formRelationships(
+            result, parents, 'defines', element.definition, separator
           ));
       } else if (predicate.use(element)) {
         return operations
@@ -97,8 +86,8 @@ module.exports = function amplify(
             key: 'terms' + separator + element.use,
             value: PLACEHOLDER_STRING
           }])
-          .concat(permutationsOf(
-            digest, 'uses', element.use, 0
+          .concat(formRelationships(
+            result, parents, 'uses', element.use, separator
           ));
       } else if (predicate.blank(element)) {
         return operations
@@ -107,8 +96,8 @@ module.exports = function amplify(
             key: 'blanks' + separator + element.blank,
             value: PLACEHOLDER_STRING
           }])
-          .concat(permutationsOf(
-            digest, 'inserts', element.blank, 0
+          .concat(formRelationships(
+            result, parents, 'inserts', element.blank, separator
           ));
       } else if (predicate.reference(element)) {
         return operations
@@ -117,8 +106,8 @@ module.exports = function amplify(
             key: 'headings' + separator + element.reference,
             value: PLACEHOLDER_STRING
           }])
-          .concat(permutationsOf(
-            digest, 'references', element.reference, 0
+          .concat(formRelationships(
+            result, parents, 'references', element.reference, separator
           ));
       } else {
         throw new Error(

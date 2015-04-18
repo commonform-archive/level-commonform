@@ -32,6 +32,7 @@ prototype.createFormsWriteStream = function() {
         normalizedForms.root,
         nestedForm,
         normalizedForms,
+        [],
         SEPARATOR
       ).forEach(this.push.bind(this));
       callback();
@@ -41,20 +42,30 @@ prototype.createFormsWriteStream = function() {
   return transform;
 };
 
-var partialTripleKey = function(pattern) {
-  return Object.keys(pattern)
-    .sort()
-    .reduce(function(result, key) {
-      var value = pattern[key];
-      if (
-        (key === 'subject' || key === 'object') &&
-         typeof value !== 'string'
-      ) {
-        value = normalize(value).root;
-      }
-      return result + value + SEPARATOR;
-    }, '');
-};
+var partialTripleKey = (function() {
+  var KEY_ORDER = require('./relationship-key-order.json');
+  var LENGTH = KEY_ORDER.length;
+  var SEARCH_KEYS = KEY_ORDER.slice(0, LENGTH - 1);
+
+  return function(pattern) {
+    var key = SEARCH_KEYS
+      .reduce(function(result, key) {
+        if (pattern.hasOwnProperty(key)) {
+          var value = pattern[key];
+          if (
+            (key === 'subject' || key === 'object') &&
+             typeof value !== 'string'
+          ) {
+            value = normalize(value).root;
+          }
+          return result + value + SEPARATOR;
+        } else {
+          return result;
+        }
+      }, '');
+    return key;
+  };
+})();
 
 prototype.createFormsReadStream = function(searchPattern) {
   var prefix;
