@@ -167,7 +167,8 @@ STRING_TYPES.forEach(function(sublevelName) {
       values: false,
       gt: prefix,
       lt: prefix + SEPARATOR
-    }).pipe(transform);
+    })
+      .pipe(transform);
     return transform;
   };
 });
