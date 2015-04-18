@@ -77,6 +77,7 @@ prototype.createFormsWriteStream = function() {
           // This has no effect for collissions among children of a
           // parent form, but commonform-normalize should address those.
           setImmediate(function() {
+            thisTransform.emit('digest', rootDigest);
             callback();
           });
         }
