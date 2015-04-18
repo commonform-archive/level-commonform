@@ -21,11 +21,14 @@ function CommonFormLibrary(levelup) {
 var prototype = CommonFormLibrary.prototype;
 
 prototype.createFormsWriteStream = function() {
-  var library = this;
-  var transform = through.obj(function(form, encoding, callback) {
-    var digest = normalize(form).root;
-    amplify(library, digest, form, SEPARATOR)
-      .forEach(this.push.bind(this));
+  var transform = through.obj(function(nestedForm, encoding, callback) {
+    var normalizedForms = normalize(nestedForm);
+    amplify(
+      normalizedForms.root,
+      nestedForm,
+      normalizedForms,
+      SEPARATOR
+    ).forEach(this.push.bind(this));
     callback();
   });
   transform.pipe(this.database.createWriteStream(utf8Encoding));

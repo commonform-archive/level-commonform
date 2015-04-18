@@ -4,8 +4,17 @@ var permute = require('./permute');
 
 var PLACEHOLDER_STRING = ' ';
 
-module.exports = function(library, digest, form, separator) {
-  return form.content.reduce(function(operations, element) {
+var pushAll = function(destination, source) {
+  source.forEach(function(element) {
+    destination.push(element);
+  });
+};
+
+module.exports = function amplify(
+  digest, nestedForm, normalizedForms, separator
+) {
+  var normalized = normalizedForms[digest];
+  return normalized.content.reduce(function(operations, element, index) {
     if (predicate.text(element)) {
       return operations;
     } else {
@@ -19,19 +28,34 @@ module.exports = function(library, digest, form, separator) {
           return {
             type: 'put',
             key: 'relationships' + separator + key,
-            value: serialize.stringify(form)
+            value: serialize.stringify(nestedForm)
           };
         });
       };
 
-      if (predicate.child(element)) {
-        return operations
-          .concat(permutationsOf(digest, 'includes', element.form, 0))
-          .concat(
-            element.hasOwnProperty('heading') ?
-              permutationsOf(digest, 'utilizes', element.heading, 0) :
-              []
+      if (element.hasOwnProperty('digest')) {
+        var childDigest = element.digest;
+        pushAll(
+          operations, permutationsOf(digest, 'includes', childDigest, 0)
+        );
+        pushAll(operations, amplify(
+          childDigest,
+          nestedForm.content[index].form,
+          normalizedForms,
+          separator
+        ));
+        if (element.hasOwnProperty('heading')) {
+          pushAll(
+            operations,
+            permutationsOf(digest, 'utilizes', element.heading, 0)
+              .concat({
+                type: 'put',
+                key: 'headings' + separator + element.heading,
+                value: PLACEHOLDER_STRING
+              })
           );
+        }
+        return operations;
       } else if (predicate.definition(element)) {
         return operations
           .concat([{
@@ -73,14 +97,14 @@ module.exports = function(library, digest, form, separator) {
             digest, 'references', element.reference, 0
           ));
       } else {
-        throw new Error();
+        throw new Error(JSON.stringify(element));
       }
     }
   }, [
     {
       type: 'put',
       key: 'forms' + separator + digest,
-      value: serialize.stringify(form)
+      value: serialize.stringify(nestedForm)
     },
     {
       type: 'put',

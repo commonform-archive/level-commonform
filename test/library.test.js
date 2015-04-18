@@ -1,9 +1,10 @@
 /* jshint node: true, mocha: true */
 var expect = require('chai').expect;
-var Library = require('..');
+var normalize = require('commonform-normalize');
 var levelup = require('levelup');
 var concat = require('concat-stream');
 var memdown = require('memdown');
+var Library = require('..');
 
 var obj = {encoding:'object'};
 
@@ -17,8 +18,7 @@ describe('Library', function() {
   });
 
   var simpleForm = {content: ['A test form']};
-  var simpleFormDigest =
-    '7ed74ba4256e2e7db587c6bb4ade316ab7150f8ce6e1115b6e8566e00de86abf';
+  var simpleFormDigest = normalize(simpleForm).root;
 
   it('stores and reproduces forms', function(done) {
     var lib = this.lib;
@@ -84,6 +84,44 @@ describe('Library', function() {
     lib.createFormsWriteStream().end(form, function() {
       lib.createBlanksReadStream().pipe(concat(obj, function(data) {
         expect(data).to.eql([blank]);
+        done();
+      }));
+    });
+  });
+
+  it('stores and reproduces included children', function(done) {
+    var lib = this.lib;
+    var child = {content: ['This is a child form']};
+    var childDigest = normalize(child).root;
+    var parent = {content: [{form: child}]};
+    var parentDigest = normalize(parent).root;
+    lib.createFormsWriteStream().end(parent, function() {
+      lib.createFormsReadStream().pipe(concat(obj, function(data) {
+        expect(data).to.include({
+          digest: childDigest,
+          form: child
+        });
+        expect(data).to.include({
+          digest: parentDigest,
+          form: parent
+        });
+        done();
+      }));
+    });
+  });
+
+  it('stores and reproduces utilized headings', function(done) {
+    var lib = this.lib;
+    var heading = 'Some Heading';
+    var parent = {
+      content: [{
+        heading: heading,
+        form: {content: ['Child form']}
+      }]
+    };
+    lib.createFormsWriteStream().end(parent, function() {
+      lib.createHeadingsReadStream().pipe(concat(obj, function(data) {
+        expect(data).to.eql([heading]);
         done();
       }));
     });
