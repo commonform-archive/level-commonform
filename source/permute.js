@@ -1,10 +1,5 @@
 var permutations = [
-  ['object', 'predicate', 'depth', 'subject'],
-  // ['object', 'subject', 'predicate'],
-  // ['predicate', 'object', 'subject'],
-  // ['predicate', 'subject', 'depth', 'object'],
-  // ['subject', 'object', 'predicate'],
-  // ['subject', 'predicate', 'object']
+  require('./relationship-key-order.json')
 ];
 
 module.exports = function(triple, separator) {
