@@ -64,6 +64,9 @@ module.exports = function amplify(
                 result, parents, 'utilizes', heading, separator
               ))
               .concat(relationship(
+                childDigest, 'implements', heading, 0, result, separator
+              ))
+              .concat(relationship(
                 heading, 'summarizes', childDigest, 0, result, separator
               ))
           );
