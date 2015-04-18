@@ -63,14 +63,20 @@ module.exports = function amplify(
           separator
         ));
         if (element.hasOwnProperty('heading')) {
+          var heading = element.heading;
           pushAll(
             operations,
-            permutationsOf(digest, 'utilizes', element.heading, 0)
-              .concat({
-                type: 'put',
-                key: 'headings' + separator + element.heading,
-                value: PLACEHOLDER_STRING
-              })
+            [{
+              type: 'put',
+              key: 'headings' + separator + heading,
+              value: PLACEHOLDER_STRING
+            }]
+              .concat(permutationsOf(
+                digest, 'utilizes', heading, 0
+              ))
+              .concat(permutationsOf(
+                heading, 'summarizes', childDigest, 0
+              ))
           );
         }
         return operations;

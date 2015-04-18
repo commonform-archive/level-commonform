@@ -130,4 +130,17 @@ describe('Graph', function() {
       done();
     }));
   });
+
+  it('links headings to summarized children', function(done) {
+    this.library.createFormsReadStream({
+      predicate: 'summarizes',
+      object: childForm
+    }).pipe(concat(function(data) {
+      expect(data).to.eql([{
+        digest: parentDigest,
+        form: parentForm
+      }]);
+      done();
+    }));
+  });
 });
