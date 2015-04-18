@@ -1,9 +1,9 @@
 {
-  "name": "commonform-library",
-  "description": "store a library of Common Forms",
+  "name": "level-commonform",
+  "description": "store a library of Common Forms in a LevelUp-compatible datastore",
   "version": "0.0.0-prerelease",
   "author": "Kyle E. Mitchell <kyle@kemitchell.com> (http://kemitchell.com)",
-  "bugs": "https://github.com/commonform/commonform-library/issues",
+  "bugs": "https://github.com/commonform/level-commonform/issues",
   "dependencies": {
     "capitalize": "^0.5.0",
     "commonform-normalize": "^0.4.0",
@@ -29,11 +29,12 @@
     "digest",
     "document assembly",
     "knowledge management",
-    "law"
+    "law",
+    "levelup"
   ],
   "license": "Apache-2.0",
   "main": "source/index",
-  "repository": "commonform/commonform-library",
+  "repository": "commonform/level-commonform",
   "scripts": {
     "check": "check-versions --check-module",
     "coverage": "istanbul cover _mocha && istanbul check-coverage coverage/coverage.json",

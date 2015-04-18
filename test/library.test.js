@@ -2,7 +2,7 @@
 var expect = require('chai').expect;
 var Library = require('..');
 
-describe('commonform-library', function() {
+describe('level-commonform', function() {
   it('exports a function', function() {
     expect(Library).to.be.a('function');
   });
