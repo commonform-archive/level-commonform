@@ -12,14 +12,9 @@ describe('Errors', function() {
   });
 
   it('for invalid forms', function(done) {
-    var caughtError = false;
     this.writeStream
       .on('error', function(error) {
-        caughtError = true;
         expect(error.message).to.equal('Invalid form');
-      })
-      .on('finish', function() {
-        expect(caughtError).to.equal(true);
         done();
       })
       .end({content: [{invalid: 'content'}]});
