@@ -1,6 +1,4 @@
-var permutations = [
-  require('./relationship-key-order.json')
-];
+var permutations = [require('./relationship-key-order.json')];
 
 module.exports = function(triple, separator) {
   return permutations.map(function(permutation) {
