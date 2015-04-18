@@ -175,4 +175,4 @@ STRING_TYPES.forEach(function(sublevelName) {
 
 module.exports = CommonFormLibrary;
 
-module.exports.version = '0.0.4-prerelease-1';
+module.exports.version = '0.0.4-prerelease-2';
