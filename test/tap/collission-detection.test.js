@@ -2,11 +2,11 @@
 // separate test runner because it clobbers require() to mock
 // commonform-hash and fake a hash collission. Doing that in shared
 // scope with other mocha suites produced unexpected results.
-var test = require('tap').test;
 var deepEql = require('deep-eql');
 var levelup = require('levelup');
 var memdown = require('memdown');
 var mockery = require('mockery');
+var test = require('tap').test;
 
 test('Hash Collissions', function(t) {
   t.plan(1);
@@ -25,16 +25,17 @@ test('Hash Collissions', function(t) {
   mockery.registerMock('commonform-hash', mockHash);
 
   var library = new require('../..')(levelup({db: memdown}));
-  library.createFormsWriteStream().end(a, function() {
-    library.createFormsWriteStream()
-      .on('error', function(error) {
-        t.equals(
-          error.message, 'Hash collission',
-          'error message should be "Hash collission"'
-        );
-      })
-      .end(b, function() {
-        mockery.disable();
-      });
-  });
+  library.createFormsWriteStream()
+    .end(a, function() {
+      library.createFormsWriteStream()
+        .on('error', function(error) {
+          t.equals(
+            error.message, 'Hash collission',
+            'error message should be "Hash collission"'
+          );
+        })
+        .end(b, function() {
+          mockery.disable();
+        });
+    });
 });

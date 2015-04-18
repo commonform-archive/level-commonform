@@ -14,8 +14,12 @@ describe('Graph', function() {
     var REFERENCED = 'Referenced';
     var USED = 'Used';
     var UTILIZED = 'Utilized';
-    var childForm = {content:['A child form']};
+
+    var childForm = {
+      content:['A child form']
+    };
     var childDigest = normalize(childForm).root;
+
     var parentForm = {
       content: [
         {use: USED},
@@ -26,6 +30,7 @@ describe('Graph', function() {
       ]
     };
     var parentDigest = normalize(parentForm).root;
+
     var otherForm = {content:['Just text']};
 
     beforeEach(function(done) {
@@ -40,115 +45,125 @@ describe('Graph', function() {
       this.library.createFormsReadStream({
         predicate: 'uses',
         object: USED
-      }).pipe(concat(function(data) {
-        expect(data).to.eql([{
-          digest: parentDigest,
-          form: parentForm
-        }]);
-        done();
-      }));
+      })
+        .pipe(concat(function(data) {
+          expect(data).to.eql([{
+            digest: parentDigest,
+            form: parentForm
+          }]);
+          done();
+        }));
     });
 
     it('links defined terms to forms', function(done) {
       this.library.createFormsReadStream({
         predicate: 'defines',
         object: DEFINED
-      }).pipe(concat(function(data) {
-        expect(data).to.eql([{
-          digest: parentDigest,
-          form: parentForm
-        }]);
-        done();
-      }));
+      })
+        .pipe(concat(function(data) {
+          expect(data).to.eql([{
+            digest: parentDigest,
+            form: parentForm
+          }]);
+          done();
+        }));
     });
 
     it('links referenced headings to forms', function(done) {
       this.library.createFormsReadStream({
         predicate: 'references',
         object: REFERENCED
-      }).pipe(concat(function(data) {
-        expect(data).to.eql([{
-          digest: parentDigest,
-          form: parentForm
-        }]);
-        done();
-      }));
+      })
+        .pipe(concat(function(data) {
+          expect(data).to.eql([{
+            digest: parentDigest,
+            form: parentForm
+          }]);
+          done();
+        }));
     });
 
     it('links inserted blanks to forms', function(done) {
       this.library.createFormsReadStream({
         predicate: 'inserts',
         object: INSERTED
-      }).pipe(concat(function(data) {
-        expect(data).to.eql([{
-          digest: parentDigest,
-          form: parentForm
-        }]);
-        done();
-      }));
+      })
+        .pipe(concat(function(data) {
+          expect(data).to.eql([{
+            digest: parentDigest,
+            form: parentForm
+          }]);
+          done();
+        }));
     });
 
     it('links utilized headings to forms', function(done) {
       this.library.createFormsReadStream({
         predicate: 'utilizes',
         object: UTILIZED
-      }).pipe(concat(function(data) {
-        expect(data).to.eql([{
-          digest: parentDigest,
-          form: parentForm
-        }]);
-        done();
-      }));
+      })
+        .pipe(concat(function(data) {
+          expect(data).to.eql([{
+            digest: parentDigest,
+            form: parentForm
+          }]);
+          done();
+        }));
     });
 
     it('links included child digests to parents', function(done) {
       this.library.createFormsReadStream({
         predicate: 'includes',
         object: childDigest
-      }).pipe(concat(function(data) {
-        expect(data).to.eql([{
-          digest: parentDigest,
-          form: parentForm
-        }]);
-        done();
-      }));
+      })
+        .pipe(concat(function(data) {
+          expect(data).to.eql([{
+            digest: parentDigest,
+            form: parentForm
+          }]);
+          done();
+        }));
     });
 
     it('links included children to parents', function(done) {
       this.library.createFormsReadStream({
         predicate: 'includes',
         object: childForm
-      }).pipe(concat(function(data) {
-        expect(data).to.eql([{
-          digest: parentDigest,
-          form: parentForm
-        }]);
-        done();
-      }));
+      })
+        .pipe(concat(function(data) {
+          expect(data).to.eql([{
+            digest: parentDigest,
+            form: parentForm
+          }]);
+          done();
+        }));
     });
 
     it('links headings to summarized children', function(done) {
       this.library.createFormsReadStream({
         predicate: 'summarizes',
         object: childForm
-      }).pipe(concat(function(data) {
-        expect(data).to.eql([{
-          digest: parentDigest,
-          form: parentForm
-        }]);
-        done();
-      }));
+      })
+        .pipe(concat(function(data) {
+          expect(data).to.eql([{
+            digest: parentDigest,
+            form: parentForm
+          }]);
+          done();
+        }));
     });
   });
 
   describe('Deep Relationships', function() {
     var DEFINED = 'Agreement';
+
     var childForm = {content: [{definition: DEFINED}]};
     var childDigest = normalize(childForm).root;
     var childResult = {
       digest: childDigest,
       form: childForm
     };
+
     var parentForm = {content:[{form: childForm}]};
     var parentDigest = normalize(parentForm).root;
     var parentResult = {
@@ -159,20 +174,20 @@ describe('Graph', function() {
     beforeEach(function(done) {
       var library = this.library = new Library(levelup({db: memdown}));
       var writeStream = library.createFormsWriteStream();
-      writeStream.write(parentForm);
-      writeStream.end(done);
+      writeStream.end(parentForm, done);
     });
 
     it('links defined terms to child and parent', function(done) {
       this.library.createFormsReadStream({
         predicate: 'defines',
         object: DEFINED
-      }).pipe(concat(function(data) {
-        expect(data).to.be.an('array');
-        expect(data).to.include(childResult);
-        expect(data).to.include(parentResult);
-        done();
-      }));
+      })
+        .pipe(concat(function(data) {
+          expect(data).to.be.an('array');
+          expect(data).to.include(childResult);
+          expect(data).to.include(parentResult);
+          done();
+        }));
     });
 
     it('links defined terms to children at depth 0', function(done) {
@@ -180,10 +195,11 @@ describe('Graph', function() {
         predicate: 'defines',
         object: DEFINED,
         depth: 0
-      }).pipe(concat(function(data) {
-        expect(data).to.eql([childResult]);
-        done();
-      }));
+      })
+        .pipe(concat(function(data) {
+          expect(data).to.eql([childResult]);
+          done();
+        }));
     });
 
     it('links defined terms to parents at depth', function(done) {
@@ -191,10 +207,11 @@ describe('Graph', function() {
         predicate: 'defines',
         object: DEFINED,
         depth: 1
-      }).pipe(concat(function(data) {
-        expect(data).to.eql([parentResult]);
-        done();
-      }));
+      })
+        .pipe(concat(function(data) {
+          expect(data).to.eql([parentResult]);
+          done();
+        }));
     });
   });
 });
