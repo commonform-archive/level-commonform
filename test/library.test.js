@@ -4,7 +4,8 @@ var Library = require('..');
 var levelup = require('levelup');
 var concat = require('concat-stream');
 var memdown = require('memdown');
-var normalize = require('commonform-normalize');
+
+var obj = {encoding:'object'};
 
 describe('Library', function() {
   beforeEach(function() {
@@ -19,10 +20,16 @@ describe('Library', function() {
     var lib = this.lib;
     var form = {content: ['A test form']};
     lib.createFormsWriteStream().end(form, function() {
-      lib.createFormsReadStream().pipe(concat(function(data) {
-        expect(data[0].form).to.eql(form);
+      lib._forms.createReadStream().pipe(concat(obj, function(data) {
+        expect(data).to.eql([form]);
         done();
       }));
+      // lib.createFormsReadStream().pipe(concat(obj, function(data) {
+      //   expect(data).to.be.an('array');
+      //   expect(data.length).to.equal(1);
+      //   expect(data[0].form).to.eql(form);
+      //   done();
+      // }));
     });
   });
 
@@ -31,8 +38,8 @@ describe('Library', function() {
     var term = 'Indemnification';
     var form = {content:[{use: term}]};
     lib.createFormsWriteStream().end(form, function() {
-      lib.createTermsReadStream().pipe(concat(function(data) {
-        expect(data).to.include(term);
+      lib.createTermsReadStream().pipe(concat(obj, function(data) {
+        expect(data).to.eql([term]);
         done();
       }));
     });
@@ -43,7 +50,7 @@ describe('Library', function() {
     var term = 'Indemnification';
     var form = {content:[{definition: term}]};
     lib.createFormsWriteStream().end(form, function() {
-      lib.createTermsReadStream().pipe(concat(function(data) {
+      lib.createTermsReadStream().pipe(concat(obj, function(data) {
         expect(data).to.eql([term]);
         done();
       }));
@@ -55,7 +62,7 @@ describe('Library', function() {
     var heading = 'Intellectual Property';
     var form = {content:[{reference: heading}]};
     lib.createFormsWriteStream().end(form, function() {
-      lib.createHeadingsReadStream().pipe(concat(function(data) {
+      lib.createHeadingsReadStream().pipe(concat(obj, function(data) {
         expect(data).to.eql([heading]);
         done();
       }));
@@ -67,7 +74,7 @@ describe('Library', function() {
     var blank = 'Company Name';
     var form = {content:[{blank: blank}]};
     lib.createFormsWriteStream().end(form, function() {
-      lib.createBlanksReadStream().pipe(concat(function(data) {
+      lib.createBlanksReadStream().pipe(concat(obj, function(data) {
         expect(data).to.eql([blank]);
         done();
       }));

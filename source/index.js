@@ -1,46 +1,39 @@
-var through = require('through2');
-var sublevel = require('level-sublevel');
-var amplify = require('./amplify');
 var normalize = require('commonform-normalize');
-var WriteStream = require('level-write-stream');
+var sublevel = require('level-sublevel');
+var through = require('through2');
+var writeStream = require('level-write-stream');
+
+var amplify = require('./amplify');
 
 var STRING_SUBLEVELS = ['blanks', 'digests', 'headings', 'terms'];
-var OBJECT_SUBLEVELS = ['forms', 'graph'];
+var OBJECT_SUBLEVELS = ['forms', 'relationships'];
 var SUBLEVELS = STRING_SUBLEVELS.concat(OBJECT_SUBLEVELS);
 
-function CommonFormLibrary(db) {
+function CommonFormLibrary(levelup) {
   if (!(this instanceof CommonFormLibrary)) {
-    return new CommonFormLibrary(db);
+    return new CommonFormLibrary(levelup);
   }
-  this._db = db;
-  var thisSublevel = this;
+  var thisLibrary = this;
+  var database = sublevel(levelup);
   SUBLEVELS.forEach(function(sublevelName) {
-    thisSublevel['_' + sublevelName] = sublevel(db, sublevelName);
+    thisLibrary['_' + sublevelName] = database.sublevel(sublevelName);
   });
-  this._createSublevelWriteStream = WriteStream(this._graph);
-};
+  thisLibrary._createSublevelWriteStream = writeStream(database);
+}
 
 var prototype = CommonFormLibrary.prototype;
 
 prototype.createFormsWriteStream = function() {
-  var thisSublevel = this;
+  var library = this;
   var transform = through.obj(function(form, encoding, callback) {
-    // Normalized the form.
-    var normalized = normalize(form);
-    var digest = normalized.root;
-
-    // Prepare a chunk for streaming.
-    var chunk = {digest: digest, form: form};
-
-    // Amplify the chunk into an array of levelup batch operations.
-    var amplified = amplify(thisSublevel, chunk);
-    var thisTransform = this;
-
-    // Stream each operation.
-    amplified.forEach(function(operation) {
-      thisTransform.push(operation);
-    });
-
+    var digest = normalize(form).root;
+    amplify(library, digest, form)
+      .concat([{
+        type: 'put',
+        key: 'something',
+        value: 'not empty'
+      }])
+      .forEach(this.push.bind(this));
     callback();
   });
   transform.pipe(this._createSublevelWriteStream());
@@ -50,10 +43,7 @@ prototype.createFormsWriteStream = function() {
 prototype.createFormsReadStream = function() {
   return this._forms.createReadStream()
     .pipe(through.obj(function(chunk, encoding, callback) {
-      this.push({
-        digest: chunk.key,
-        form: JSON.parse(chunk.value)
-      });
+      this.push({digest: chunk.key, form: JSON.parse(chunk.value)});
       callback();
     }));
 };
@@ -62,7 +52,8 @@ STRING_SUBLEVELS.forEach(function(sublevelName) {
   var capitalized = (
     sublevelName[0].toUpperCase() + sublevelName.slice(1)
   );
-  prototype['create' + capitalized + 'ReadStream'] = function() {
+  var functionName = 'create' + capitalized + 'ReadStream';
+  prototype[functionName] = function() {
     var transform = through.obj(function(chunk, encoding, callback) {
       this.push(chunk);
       callback();

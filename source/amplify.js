@@ -1,9 +1,9 @@
 var predicate = require('commonform-predicate');
 var permute = require('./permute');
 
-module.exports = function(sublevel, chunk) {
-  var digest = chunk.digest;
-  var form = chunk.form;
+var PLACEHOLDER_STRING = ' ';
+
+module.exports = function(library, digest, form) {
   return form.content.reduce(function(operations, element) {
     if (predicate.text(element)) {
       return operations;
@@ -16,7 +16,7 @@ module.exports = function(sublevel, chunk) {
           depth: depth
         }, '\xff\xff').map(function(key) {
           return {
-            prefix: sublevel._graph,
+            prefix: library._relationships,
             type: 'put',
             key: key,
             value: JSON.stringify(form)
@@ -26,7 +26,7 @@ module.exports = function(sublevel, chunk) {
 
       if (predicate.child(element)) {
         return operations
-          .concat(permutationsOf(digest, 'includes', child.form, 0))
+          .concat(permutationsOf(digest, 'includes', element.form, 0))
           .concat(
             element.hasOwnProperty('heading') ?
               permutationsOf(digest, 'utilizes', element.heading, 0) :
@@ -35,10 +35,10 @@ module.exports = function(sublevel, chunk) {
       } else if (predicate.definition(element)) {
         return operations
           .concat([{
-            prefix: sublevel._terms,
+            prefix: library._terms,
             type: 'put',
             key: element.definition,
-            value: ''
+            value: PLACEHOLDER_STRING
           }])
           .concat(permutationsOf(
             digest, 'defines', element.definition, 0
@@ -46,7 +46,7 @@ module.exports = function(sublevel, chunk) {
       } else if (predicate.use(element)) {
         return operations
           .concat([{
-            prefix: sublevel._terms,
+            prefix: library._terms,
             type: 'put',
             key: element.use,
             value: element.use
@@ -57,7 +57,7 @@ module.exports = function(sublevel, chunk) {
       } else if (predicate.blank(element)) {
         return operations
           .concat([{
-            prefix: sublevel._blanks,
+            prefix: library._blanks,
             type: 'put',
             key: element.blank,
             value: element.blank
@@ -68,7 +68,7 @@ module.exports = function(sublevel, chunk) {
       } else if (predicate.reference(element)) {
         return operations
           .concat([{
-            prefix: sublevel._headings,
+            prefix: library._headings,
             type: 'put',
             key: element.reference,
             value: element.reference
@@ -76,12 +76,14 @@ module.exports = function(sublevel, chunk) {
           .concat(permutationsOf(
             digest, 'references', element.reference, 0
           ));
+      } else {
+        throw new Error();
       }
     }
   }, [{
+    prefix: library._forms,
     type: 'put',
     key: digest,
-    value: JSON.stringify(form),
-    prefix: sublevel._forms
+    value: JSON.stringify(form)
   }]);
 };
