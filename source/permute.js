@@ -10,7 +10,7 @@ var permutations = [
 module.exports = function(triple, separator) {
   return permutations.map(function(permutation) {
     return permutation.reduce(function(keys, key) {
-      return keys.concat([key, triple[key]]);
+      return keys.concat([triple[key]]);
     }, []).join(separator) + separator;
   });
 };

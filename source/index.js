@@ -47,7 +47,7 @@ var partialTripleKey = function(pattern) {
       ) {
         value = normalize(value).root;
       }
-      return result + key + SEPARATOR + value + SEPARATOR;
+      return result + value + SEPARATOR;
     }, '');
 };
 
