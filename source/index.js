@@ -1,3 +1,4 @@
+var async = require('async');
 var capitalize = require('capitalize');
 var normalize = require('commonform-normalize');
 var serialize = require('commonform-serialize');
@@ -5,6 +6,7 @@ var through = require('through2');
 var validate = require('commonform-validate');
 
 var amplify = require('./amplify');
+var denormalize = require('./denormalize');
 
 var SEPARATOR = '\xff\xff';
 
@@ -23,19 +25,62 @@ function CommonFormLibrary(levelup) {
 var prototype = CommonFormLibrary.prototype;
 
 prototype.createFormsWriteStream = function() {
+  var thisLibrary = this;
   var transform = through.obj(function(nestedForm, encoding, callback) {
+    var thisTransform = this;
     if (!validate.form(nestedForm)) {
       callback(new Error('Invalid form'));
     } else {
       var normalizedForms = normalize(nestedForm);
-      amplify(
-        normalizedForms.root,
-        nestedForm,
-        normalizedForms,
-        [],
-        SEPARATOR
-      ).forEach(this.push.bind(this));
-      callback();
+      var rootDigest = normalizedForms.root;
+      delete normalizedForms.root;
+
+      // Collission detection
+      var digests = Object.keys(normalizedForms);
+      var nestedForms = digests.reduce(function(map, digest) {
+        var normalizedChild = normalizedForms[digest];
+        map[digest] = denormalize(normalizedChild, normalizedForms);
+        return map;
+      }, {});
+
+      var collidesWithExisting = function(digest, callback) {
+        var key = 'forms' + SEPARATOR + digest;
+        this.database.get(key, function(error, result) {
+          /* istanbul ignore next -- covered by TAP test */
+          callback(
+            result &&
+            result !== serialize.stringify(nestedForms[digest])
+          );
+        });
+      }.bind(thisLibrary);
+
+      async.some(digests, collidesWithExisting, function(result) {
+        /* istanbul ignore if -- covefred by TAP test */
+        if (result) {
+          callback(new Error('Hash collission'));
+        } else {
+          amplify(
+            rootDigest,
+            nestedForm,
+            normalizedForms,
+            [], // no parents of root form
+            SEPARATOR
+          ).forEach(function(operation) {
+            thisTransform.push(operation);
+          });
+
+          // LevelUp flushes write operations buffered by a write stream
+          // to .batch() next tick. If multiple forms are written in one
+          // tick, they won't be able to use LevelUp's .get() to check
+          // for hash collissions among them. setImmediate forces the
+          // next form write behind earlier-scheduled I/O & callbacks.
+          // This has no effect for collissions among children of a
+          // parent form, but commonform-normalize should address those.
+          setImmediate(function() {
+            callback();
+          });
+        }
+      });
     }
   });
   transform.pipe(this.database.createWriteStream(utf8Encoding));
