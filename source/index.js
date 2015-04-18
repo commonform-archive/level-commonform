@@ -55,7 +55,7 @@ prototype.createFormsWriteStream = function() {
       }.bind(thisLibrary);
 
       async.some(digests, collidesWithExisting, function(result) {
-        /* istanbul ignore if -- covefred by TAP test */
+        /* istanbul ignore if -- covered by TAP test */
         if (result) {
           callback(new Error('Hash collission'));
         } else {
