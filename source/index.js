@@ -116,6 +116,22 @@ prototype.getForm = function(digest, callback) {
   });
 };
 
+prototype.hasForm = function(form, callback) {
+  var rootDigest = normalize(form).root;
+  this.getForm(rootDigest, function(error) {
+    if (error) {
+      /* istanbul ignore else */
+      if (error.notFound) {
+        callback(null, false);
+      } else {
+        callback(error);
+      }
+    } else {
+      callback(null, rootDigest);
+    }
+  });
+};
+
 prototype.createFormsReadStream = function(searchPattern) {
   var prefix;
   if (searchPattern) {
