@@ -15,14 +15,14 @@ var utf8Encoding = {
   valueEncoding: 'utf8'
 };
 
-function CommonFormLibrary(levelup) {
-  if (!(this instanceof CommonFormLibrary)) {
-    return new CommonFormLibrary(levelup);
+function LevelCommonForm(levelup) {
+  if (!(this instanceof LevelCommonForm)) {
+    return new LevelCommonForm(levelup);
   }
   this.database = levelup;
 }
 
-var prototype = CommonFormLibrary.prototype;
+var prototype = LevelCommonForm.prototype;
 
 prototype.createFormsWriteStream = function() {
   var thisLibrary = this;
@@ -173,6 +173,6 @@ STRING_TYPES.forEach(function(sublevelName) {
   };
 });
 
-module.exports = CommonFormLibrary;
+module.exports = LevelCommonForm;
 
 module.exports.version = '0.0.4-prerelease-2';
