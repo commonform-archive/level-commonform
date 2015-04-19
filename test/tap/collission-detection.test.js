@@ -3,8 +3,6 @@
 // commonform-hash and fake a hash collission. Doing that in shared
 // scope with other mocha suites produced unexpected results.
 var deepEql = require('deep-eql');
-var levelup = require('levelup');
-var memdown = require('memdown');
 var mockery = require('mockery');
 var test = require('tap').test;
 
@@ -24,7 +22,7 @@ test('Hash Collissions', function(t) {
   mockery.enable({warnOnUnregistered: false});
   mockery.registerMock('commonform-hash', mockHash);
 
-  var library = new require('../..')(levelup({db: memdown}));
+  var library = require('../helpers/make-library')();
   library.createFormsWriteStream()
     .end(a, function() {
       library.createFormsWriteStream()

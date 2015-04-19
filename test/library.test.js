@@ -1,5 +1,6 @@
 /* jshint mocha: true */
 var expect = require('chai').expect;
+
 var Library = require('..');
 
 describe('level-commonform', function() {

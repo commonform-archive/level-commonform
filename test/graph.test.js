@@ -1,11 +1,9 @@
 /* jshint node: true, mocha: true */
 var concat = require('concat-stream');
 var expect = require('chai').expect;
-var levelup = require('levelup');
-var memdown = require('memdown');
 var normalize = require('commonform-normalize');
 
-var Library = require('..');
+var makeLibrary = require('./helpers/make-library');
 
 describe('Graph', function() {
   describe('Depth-zero Relationships', function() {
@@ -34,7 +32,7 @@ describe('Graph', function() {
     var otherForm = {content:['Just text']};
 
     beforeEach(function(done) {
-      var library = this.library = new Library(levelup({db: memdown}));
+      var library = this.library = makeLibrary();
       var writeStream = library.createFormsWriteStream();
       writeStream.write(parentForm);
       writeStream.write(otherForm);
@@ -172,7 +170,7 @@ describe('Graph', function() {
     };
 
     beforeEach(function(done) {
-      var library = this.library = new Library(levelup({db: memdown}));
+      var library = this.library = makeLibrary();
       var writeStream = library.createFormsWriteStream();
       writeStream.end(parentForm, done);
     });

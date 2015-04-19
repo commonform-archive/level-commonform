@@ -1,13 +1,10 @@
 /* jshint mocha: true */
 var expect = require('chai').expect;
-var levelup = require('levelup');
-var memdown = require('memdown');
-
-var Library = require('..');
+var makeLibrary = require('./helpers/make-library');
 
 describe('Errors', function() {
   beforeEach(function() {
-    var library = new Library(levelup({db: memdown}));
+    var library = makeLibrary();
     this.writeStream = library.createFormsWriteStream();
   });
 

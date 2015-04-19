@@ -1,16 +1,14 @@
 /* jshint mocha: true */
 var concat = require('concat-stream');
 var expect = require('chai').expect;
-var levelup = require('levelup');
-var memdown = require('memdown');
 
-var Library = require('..');
+var makeLibrary = require('./helpers/make-library');
 
 var example = require('./fixtures/Apache-2.0.json');
 
 describe('Real-World Example', function() {
   beforeEach(function(done) {
-    var library = this.library = new Library(levelup({db: memdown}));
+    var library = this.library = makeLibrary();
     var writeStream = library.createFormsWriteStream();
     writeStream.end(example, done);
   });

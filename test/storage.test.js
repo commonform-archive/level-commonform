@@ -1,17 +1,15 @@
 /* jshint node: true, mocha: true */
 var concat = require('concat-stream');
 var expect = require('chai').expect;
-var levelup = require('levelup');
-var memdown = require('memdown');
 var normalize = require('commonform-normalize');
 
-var Library = require('..');
+var makeLibrary = require('./helpers/make-library');
 
 var asArrayOfObjects = {encoding:'object'};
 
 describe('Storage', function() {
   beforeEach(function() {
-    this.library = new Library(levelup({db: memdown}));
+    this.library = makeLibrary();
   });
 
   var simpleForm = {content: ['A test form']};
