@@ -24,11 +24,37 @@ function LevelCommonForm(levelup) {
 
 var prototype = LevelCommonForm.prototype;
 
-var formWriteInfo = function(nestedForm, callback) {
+var partialTripleKey = (function() {
+  var KEY_ORDER = require('./relationship-key-order.json');
+  var LENGTH = KEY_ORDER.length;
+  var SEARCH_KEYS = KEY_ORDER.slice(0, LENGTH - 1);
+
+  return function(pattern) {
+    var key = SEARCH_KEYS
+      .reduce(function(result, key) {
+        if (pattern.hasOwnProperty(key)) {
+          var value = pattern[key];
+          if (
+            (key === 'subject' || key === 'object') &&
+             typeof value !== 'string'
+          ) {
+            value = normalize(value).root;
+          }
+          return result + value + SEPARATOR;
+        } else {
+          return result;
+        }
+      }, '');
+    return key;
+  };
+})();
+
+prototype.putForm = function(nestedForm, callback) {
+  var thisLibrary = this;
+
   if (!validate.form(nestedForm)) {
-    setImmediate(function() {
-      callback(new Error('Invalid form'));
-    });
+    callback(new Error('Invalid form'));
+
   } else {
     var normalizedForms = normalize(nestedForm);
     var rootDigest = normalizedForms.root;
@@ -55,9 +81,7 @@ var formWriteInfo = function(nestedForm, callback) {
     async.some(digests, collidesWithExisting, function(result) {
       /* istanbul ignore if -- covered by TAP test */
       if (result) {
-        setImmediate(function() {
-          callback(new Error('Hash collission'));
-        });
+        callback(new Error('Hash collission'));
       } else {
         var batch = amplify(
           rootDigest,
@@ -67,88 +91,17 @@ var formWriteInfo = function(nestedForm, callback) {
           SEPARATOR
         );
 
-        // LevelUp flushes write operations buffered by a write stream
-        // to .batch() next tick. If multiple forms are written in one
-        // tick, they won't be able to use LevelUp's .get() to check
-        // for hash collissions among them. setImmediate forces the
-        // next form write behind earlier-scheduled I/O & callbacks.
-        // This has no effect for collissions among children of a
-        // parent form, but commonform-normalize should address those.
-        setImmediate(function() {
-          callback(null, {
-            digest: rootDigest,
-            batch: batch
-          });
+        thisLibrary.database.batch(batch, utf8Encoding, function(error) {
+          /* istanbul ignore if */
+          if (error) {
+            callback(error);
+          } else {
+            callback(null, rootDigest);
+          }
         });
       }
     });
   }
-};
-
-prototype.createFormsWriteStream = function() {
-  var thisLibrary = this;
-  var transform = through.obj(function(nestedForm, encoding, callback) {
-    var thisTransform = this;
-    formWriteInfo.call(thisLibrary, nestedForm, function(error, info) {
-      if (error) {
-        setImmediate(function() {
-          callback(error);
-        });
-      } else {
-        thisTransform.emit('digest', info.digest);
-        info.batch.forEach(function(operation) {
-          thisTransform.push(operation);
-        });
-        setImmediate(callback);
-      }
-    });
-  });
-  transform.pipe(this.database.createWriteStream(utf8Encoding));
-  return transform;
-};
-
-var partialTripleKey = (function() {
-  var KEY_ORDER = require('./relationship-key-order.json');
-  var LENGTH = KEY_ORDER.length;
-  var SEARCH_KEYS = KEY_ORDER.slice(0, LENGTH - 1);
-
-  return function(pattern) {
-    var key = SEARCH_KEYS
-      .reduce(function(result, key) {
-        if (pattern.hasOwnProperty(key)) {
-          var value = pattern[key];
-          if (
-            (key === 'subject' || key === 'object') &&
-             typeof value !== 'string'
-          ) {
-            value = normalize(value).root;
-          }
-          return result + value + SEPARATOR;
-        } else {
-          return result;
-        }
-      }, '');
-    return key;
-  };
-})();
-
-prototype.putForm = function(form, callback) {
-  var thisLibrary = this;
-  formWriteInfo.call(thisLibrary, form, function(error, info) {
-    /* istanbul ignore if */
-    if (error) {
-      callback(error);
-    } else {
-      thisLibrary.database.batch(info.batch, function(error) {
-        /* istanbul ignore if */
-        if (error) {
-          callback(error);
-        } else {
-          callback(null, info.digest);
-        }
-      });
-    }
-  });
 };
 
 prototype.getForm = function(digest, callback) {

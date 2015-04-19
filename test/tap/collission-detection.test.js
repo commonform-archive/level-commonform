@@ -23,17 +23,13 @@ test('Hash Collissions', function(t) {
   mockery.registerMock('commonform-hash', mockHash);
 
   var library = require('../helpers/make-library')();
-  library.createFormsWriteStream()
-    .end(a, function() {
-      library.createFormsWriteStream()
-        .on('error', function(error) {
-          t.equals(
-            error.message, 'Hash collission',
-            'error message should be "Hash collission"'
-          );
-        })
-        .end(b, function() {
-          mockery.disable();
-        });
+  library.putForm(a, function() {
+    library.putForm(b, function(error) {
+      t.equals(
+        error.message, 'Hash collission',
+        'error message should be "Hash collission"'
+      );
+      mockery.disable();
     });
+  });
 });

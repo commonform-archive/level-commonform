@@ -21,26 +21,24 @@ describe('Storage', function() {
       digest: simpleFormDigest,
       form: simpleForm
     };
-    library.createFormsWriteStream()
-      .end(simpleForm, function() {
-        library.createFormsReadStream()
-          .pipe(concat(function(data) {
-            expect(data).to.eql([result]);
-            done();
-          }));
-      });
+    library.putForm(simpleForm, function() {
+      library.createFormsReadStream()
+        .pipe(concat(function(data) {
+          expect(data).to.eql([result]);
+          done();
+        }));
+    });
   });
 
   it('stores form digests', function(done) {
     var library = this.library;
-    library.createFormsWriteStream()
-      .end(simpleForm, function() {
-        library.createDigestsReadStream()
-          .pipe(concat(asArrayOfObjects, function(data) {
-            expect(data).to.eql([simpleFormDigest]);
-            done();
-          }));
-      });
+    library.putForm(simpleForm, function() {
+      library.createDigestsReadStream()
+        .pipe(concat(asArrayOfObjects, function(data) {
+          expect(data).to.eql([simpleFormDigest]);
+          done();
+        }));
+    });
   });
 
   it('stores used terms', function(done) {
@@ -49,14 +47,13 @@ describe('Storage', function() {
     var form = {
       content:[{use: term}]
     };
-    library.createFormsWriteStream()
-      .end(form, function() {
-        library.createTermsReadStream()
-          .pipe(concat(asArrayOfObjects, function(data) {
-            expect(data).to.eql([term]);
-            done();
-          }));
-      });
+    library.putForm(form, function() {
+      library.createTermsReadStream()
+        .pipe(concat(asArrayOfObjects, function(data) {
+          expect(data).to.eql([term]);
+          done();
+        }));
+    });
   });
 
   it('stores defined terms', function(done) {
@@ -65,14 +62,13 @@ describe('Storage', function() {
     var form = {
       content:[{definition: term}]
     };
-    library.createFormsWriteStream()
-      .end(form, function() {
-        library.createTermsReadStream()
-          .pipe(concat(asArrayOfObjects, function(data) {
-            expect(data).to.eql([term]);
-            done();
-          }));
-      });
+    library.putForm(form, function() {
+      library.createTermsReadStream()
+        .pipe(concat(asArrayOfObjects, function(data) {
+          expect(data).to.eql([term]);
+          done();
+        }));
+    });
   });
 
   it('stores referenced headings', function(done) {
@@ -81,28 +77,26 @@ describe('Storage', function() {
     var form = {
       content:[{reference: heading}]
     };
-    library.createFormsWriteStream()
-      .end(form, function() {
-        library.createHeadingsReadStream()
-          .pipe(concat(asArrayOfObjects, function(data) {
-            expect(data).to.eql([heading]);
-            done();
-          }));
-      });
+    library.putForm(form, function() {
+      library.createHeadingsReadStream()
+        .pipe(concat(asArrayOfObjects, function(data) {
+          expect(data).to.eql([heading]);
+          done();
+        }));
+    });
   });
 
   it('stores inserted blanks', function(done) {
     var library = this.library;
     var blank = 'Company Name';
     var form = {content:[{blank: blank}]};
-    library.createFormsWriteStream()
-      .end(form, function() {
-        library.createBlanksReadStream()
-          .pipe(concat(asArrayOfObjects, function(data) {
-            expect(data).to.eql([blank]);
-            done();
-          }));
-      });
+    library.putForm(form, function() {
+      library.createBlanksReadStream()
+        .pipe(concat(asArrayOfObjects, function(data) {
+          expect(data).to.eql([blank]);
+          done();
+        }));
+    });
   });
 
   it('stores included children', function(done) {
@@ -115,21 +109,20 @@ describe('Storage', function() {
       content: [{form: child}]
     };
     var parentDigest = normalize(parent).root;
-    library.createFormsWriteStream()
-      .end(parent, function() {
-        library.createFormsReadStream()
-          .pipe(concat(asArrayOfObjects, function(data) {
-            expect(data).to.include({
-              digest: childDigest,
-              form: child
-            });
-            expect(data).to.include({
-              digest: parentDigest,
-              form: parent
-            });
-            done();
-          }));
-      });
+    library.putForm(parent, function() {
+      library.createFormsReadStream()
+        .pipe(concat(asArrayOfObjects, function(data) {
+          expect(data).to.include({
+            digest: childDigest,
+            form: child
+          });
+          expect(data).to.include({
+            digest: parentDigest,
+            form: parent
+          });
+          done();
+        }));
+    });
   });
 
   it('stores utilized headings', function(done) {
@@ -141,13 +134,12 @@ describe('Storage', function() {
         form: {content: ['Child form']}
       }]
     };
-    library.createFormsWriteStream()
-      .end(parent, function() {
-        library.createHeadingsReadStream()
-          .pipe(concat(asArrayOfObjects, function(data) {
-            expect(data).to.eql([heading]);
-            done();
-          }));
-      });
+    library.putForm(parent, function() {
+      library.createHeadingsReadStream()
+        .pipe(concat(asArrayOfObjects, function(data) {
+          expect(data).to.eql([heading]);
+          done();
+        }));
+    });
   });
 });

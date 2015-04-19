@@ -9,8 +9,7 @@ var example = require('./fixtures/Apache-2.0.json');
 describe('Real-World Example', function() {
   beforeEach(function(done) {
     var library = this.library = makeLibrary();
-    var writeStream = library.createFormsWriteStream();
-    writeStream.end(example, done);
+    library.putForm(example, done);
   });
 
   it('defines "Licensor"', function(done) {

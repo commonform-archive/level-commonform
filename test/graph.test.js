@@ -33,10 +33,9 @@ describe('Graph', function() {
 
     beforeEach(function(done) {
       var library = this.library = makeLibrary();
-      var writeStream = library.createFormsWriteStream();
-      writeStream.write(parentForm);
-      writeStream.write(otherForm);
-      writeStream.end(done);
+      library.putForm(parentForm, function() {
+        library.putForm(otherForm, done);
+      });
     });
 
     it('links used terms to forms', function(done) {
@@ -171,8 +170,7 @@ describe('Graph', function() {
 
     beforeEach(function(done) {
       var library = this.library = makeLibrary();
-      var writeStream = library.createFormsWriteStream();
-      writeStream.end(parentForm, done);
+      library.putForm(parentForm, done);
     });
 
     it('links defined terms to child and parent', function(done) {
