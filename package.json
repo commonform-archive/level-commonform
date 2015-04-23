@@ -39,6 +39,9 @@
   ],
   "license": "Apache-2.0",
   "main": "source/index",
+  "peerDependencies": {
+    "commonform": "1.x"
+  },
   "repository": "commonform/level-commonform",
   "scripts": {
     "check": "check-versions --check-module",
