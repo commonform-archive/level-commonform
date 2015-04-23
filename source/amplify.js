@@ -26,13 +26,14 @@ module.exports = function amplify(
   separator
 ) {
   var normalized = normalizedForms[digest];
+  var content = normalized.content;
   var result = {
     digest: digest,
     form: nestedForm
   };
 
   // Build a list of LevelUp operations for this form.
-  return normalized.content.reduce(function(operations, element, index) {
+  return content.reduce(function(operations, element, index) {
     if (predicate.text(element)) {
       return operations;
     } else {

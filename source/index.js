@@ -10,7 +10,7 @@ var denormalize = require('./denormalize');
 
 var SEPARATOR = '\xff\xff';
 
-var utf8Encoding = {
+var utf8Encode = {
   keyEncoding: 'utf8',
   valueEncoding: 'utf8'
 };
@@ -91,7 +91,7 @@ prototype.putForm = function(nestedForm, callback) {
           SEPARATOR
         );
 
-        thisLibrary.database.batch(batch, utf8Encoding, function(error) {
+        thisLibrary.database.batch(batch, utf8Encode, function(error) {
           /* istanbul ignore if */
           if (error) {
             callback(error);
