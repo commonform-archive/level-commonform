@@ -2,7 +2,7 @@
 var expect = require('chai').expect;
 var normalize = require('commonform-normalize');
 
-var makeLibrary = require('./helpers/make-library');
+var makeLibrary = require('../helpers/make-library');
 
 describe('Get/Set/Has Interface', function() {
   beforeEach(function() {

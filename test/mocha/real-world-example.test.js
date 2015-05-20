@@ -2,9 +2,9 @@
 var concat = require('concat-stream');
 var expect = require('chai').expect;
 
-var makeLibrary = require('./helpers/make-library');
+var makeLibrary = require('../helpers/make-library');
 
-var example = require('./fixtures/Apache-2.0.json');
+var example = require('../fixtures/Apache-2.0.json');
 
 describe('Real-World Example', function() {
   beforeEach(function(done) {

@@ -3,7 +3,7 @@ var concat = require('concat-stream');
 var expect = require('chai').expect;
 var normalize = require('commonform-normalize');
 
-var makeLibrary = require('./helpers/make-library');
+var makeLibrary = require('../helpers/make-library');
 
 describe('Graph', function() {
   describe('Depth-zero Relationships', function() {
