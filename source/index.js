@@ -169,19 +169,23 @@ var STRING_TYPES = ['digests', 'terms', 'headings', 'blanks'];
 
 STRING_TYPES.forEach(function(sublevelName) {
   var functionName = 'create' + capitalize(sublevelName) + 'ReadStream';
-  var prefix = sublevelName + SEPARATOR;
-  prototype[functionName] = function() {
+  var keyPrefix = sublevelName + SEPARATOR;
+  prototype[functionName] = function(namePrefix) {
     var transform = through.obj(function(chunk, encoding, callback) {
       // Remove key prefixes.
-      var key = chunk.slice(prefix.length);
+      var key = chunk.slice(keyPrefix.length);
       this.push(key);
       callback();
     });
     this.database.createReadStream({
       keys: true,
       values: false,
-      gt: prefix,
-      lt: prefix + SEPARATOR
+      gt: namePrefix ?
+        keyPrefix + namePrefix :
+        keyPrefix,
+      lt: namePrefix ?
+        keyPrefix + namePrefix + SEPARATOR :
+        keyPrefix + SEPARATOR
     })
       .pipe(transform);
     return transform;
