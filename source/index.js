@@ -6,6 +6,7 @@ var through = require('through2');
 var validate = require('commonform-validate');
 
 var amplify = require('./amplify');
+var amplifyBookmark = require('./amplify-bookmark');
 var denormalize = require('./denormalize');
 
 var SEPARATOR = '\xff\xff';
@@ -130,6 +131,64 @@ prototype.hasForm = function(form, callback) {
       }
     } else {
       callback(null, rootDigest);
+    }
+  });
+};
+
+prototype.putBookmark = function(digest, bookmark, callback) {
+  var thisLibrary = this;
+  var error;
+
+  if (typeof bookmark !== 'string' || !validate.term(bookmark)) {
+    error = new Error('Invalid bookmark');
+    error.invalidBookmark = true;
+    callback(error);
+
+  } else if (typeof digest !== 'string' || digest.length < 1) {
+    error = new Error('Invalid digest');
+    error.invalidDigest = true;
+    callback(error);
+
+  } else {
+    var batch = [{
+      type: 'put',
+      key: 'bookmarks' + SEPARATOR + bookmark,
+      value: serialize.stringify({digest: digest})
+    }].concat(amplifyBookmark(bookmark, digest));
+    thisLibrary.database.batch(batch, utf8Encode, function(error) {
+      /* istanbul ignore if */
+      if (error) {
+        callback(error);
+      } else {
+        callback(null, true);
+      }
+    });
+  }
+};
+
+prototype.getBookmark = function(bookmark, callback) {
+  var key = 'bookmarks' + SEPARATOR + bookmark;
+  return this.database.get(key, function(error, data) {
+    /* istanbul ignore if */
+    if (error) {
+      callback(error);
+    } else {
+      callback(null, serialize.parse(data).digest);
+    }
+  });
+};
+
+prototype.hasBookmark = function(bookmark, callback) {
+  this.getBookmark(bookmark, function(error) {
+    if (error) {
+      /* istanbul ignore else */
+      if (error.notFound) {
+        callback(null, false);
+      } else {
+        callback(error);
+      }
+    } else {
+      callback(null, true);
     }
   });
 };
