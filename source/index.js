@@ -226,7 +226,9 @@ prototype.createFormsReadStream = function(searchPattern) {
   }
 };
 
-var STRING_TYPES = ['digests', 'terms', 'headings', 'blanks'];
+var STRING_TYPES = [
+  'bookmarks', 'digests', 'terms', 'headings', 'blanks'
+];
 
 STRING_TYPES.forEach(function(sublevelName) {
   var functionName = 'create' + capitalize(sublevelName) + 'ReadStream';
