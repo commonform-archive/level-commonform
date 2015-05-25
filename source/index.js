@@ -196,4 +196,4 @@ STRING_TYPES.forEach(function(sublevelName) {
 
 module.exports = LevelCommonForm;
 
-module.exports.version = '0.0.4-prerelease-2';
+module.exports.version = '0.4.0';
