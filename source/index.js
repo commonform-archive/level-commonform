@@ -53,7 +53,9 @@ prototype.putForm = function(nestedForm, callback) {
   var thisLibrary = this;
 
   if (!validate.form(nestedForm)) {
-    callback(new Error('Invalid form'));
+    var error = new Error('Invalid form');
+    error.invalidForm = true;
+    callback(error);
 
   } else {
     var normalizedForms = normalize(nestedForm);
