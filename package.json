@@ -11,7 +11,7 @@
     "commonform-normalize": "^0.5.0",
     "commonform-predicate": "^0.4.0",
     "commonform-serialize": "^0.4.0",
-    "commonform-validate": "^0.4.0",
+    "commonform-validate": "^0.5.0",
     "through2": "^0.6.5"
   },
   "devDependencies": {
