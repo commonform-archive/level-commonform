@@ -1,7 +1,7 @@
 {
   "name": "level-commonform",
   "description": "store a library of Common Forms in a LevelUp-compatible datastore",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "author": "Kyle E. Mitchell <kyle@kemitchell.com> (http://kemitchell.com)",
   "bugs": "https://github.com/commonform/level-commonform/issues",
   "dependencies": {
