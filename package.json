@@ -22,7 +22,7 @@
     "tape": "^4.2.1"
   },
   "license": "Apache-2.0",
-  "repository": "kemitchell/level-commonform.js",
+  "repository": "kemitchell/level-commonform",
   "scripts": {
     "coverage": "covert test/*.test.js",
     "test": "tape test/*.test.js"
