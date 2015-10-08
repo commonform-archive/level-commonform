@@ -6,6 +6,7 @@ var bytewise = require('bytewise/encoding/hex')
 var get = require('keyarray-get')
 var isChild = require('commonform-predicate').child
 var merkleize = require('commonform-merkleize')
+var meta = require('./meta')
 var serialize = require('commonform-serialize')
 var through = require('through2')
 var validate = require('commonform-validate')
@@ -17,18 +18,8 @@ var decode = bytewise.decode
 var encode = bytewise.encode
 
 var NO_VALUE = undefined
-
-var RELATIONS = [
-  { prefix: 'definition', analysis: 'definitions' },
-  { prefix: 'use',        analysis: 'uses' },
-  { prefix: 'reference',  analysis: 'references' },
-  { prefix: 'insertion',  analysis: 'blanks' },
-  { prefix: 'inclusion',  analysis: 'headings' } ]
-
-var NAMESPACES = [
-  { prefix: 'heading', analyses: [ 'headings', 'references' ] },
-  { prefix: 'term',    analyses: [ 'definitions', 'uses' ] },
-  { prefix: 'blank',   analyses: [ 'blanks' ] } ]
+var NAMESPACES = meta.namespaces
+var RELATIONS = meta.relations
 
 function formKey(digest) {
   return encode([ 'form', digest ]) }
