@@ -1,7 +1,7 @@
 {
   "name": "level-commonform",
   "description": "store Common Forms in a LevelUp-compatible datastore",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "author": "Kyle E. Mitchell <kyle@kemitchell.com> (https://kemitchell.com/)",
   "dependencies": {
     "asap": "^2.0.3",
