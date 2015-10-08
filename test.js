@@ -195,3 +195,19 @@ tape('put a form and stream headings', function(test) {
       .on('end', function() {
         var expected = [ 'Assignment', 'Delegation' ]
         test.deepEqual(headings, expected, 'term in list') }) }) })
+
+tape('put a child form and stream its parents', function(test) {
+  test.plan(2)
+  var level = createTestStore()
+  var child = { content: [ 'This is a test' ] }
+  var parent = { content: [ { form: child } ] }
+  var childDigest = merkleize(child).digest
+  level.putForm(parent, function(error, parentDigest) {
+    test.ifError(error, 'no error on put')
+    var digests = [ ]
+    level.createParentStream(childDigest)
+      .on('data', function(term) {
+        digests.push(term) })
+      .on('end', function() {
+        var expected = [ parentDigest ]
+        test.deepEqual(digests, expected, 'digest in list') }) }) })
