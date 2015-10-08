@@ -15,6 +15,8 @@
   },
   "dependencies": {
     "asap": "^2.0.3",
+    "bytewise": "^1.1.0",
+    "commonform-analyze": "^0.4.3",
     "commonform-merkleize": "^0.3.2",
     "commonform-predicate": "^0.4.3",
     "commonform-serialize": "^0.4.2",
