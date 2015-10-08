@@ -1,20 +1,7 @@
 {
   "name": "level-commonform",
   "version": "0.0.0",
-  "description": "",
   "author": "Kyle E. Mitchell <kyle@kemitchell.com> (https://kemitchell.com/)",
-  "repository": "kemitchell/level-commonform.js",
-  "license": "MIT",
-  "devDependencies": {
-    "covert": "^1.1.0",
-    "levelup": "^1.2.1",
-    "memdown": "^1.1.0",
-    "tape": "^4.2.1"
-  },
-  "scripts": {
-    "test": "tape test/*.test.js",
-    "coverage": "covert test/*.test.js"
-  },
   "dependencies": {
     "asap": "^2.0.3",
     "bytewise": "^1.1.0",
@@ -26,5 +13,17 @@
     "keyarray-get": "^0.1.0",
     "readable-stream": "^2.0.2",
     "through2": "^2.0.0"
+  },
+  "devDependencies": {
+    "covert": "^1.1.0",
+    "levelup": "^1.2.1",
+    "memdown": "^1.1.0",
+    "tape": "^4.2.1"
+  },
+  "license": "MIT",
+  "repository": "kemitchell/level-commonform.js",
+  "scripts": {
+    "coverage": "covert test/*.test.js",
+    "test": "tape test/*.test.js"
   }
 }
