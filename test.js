@@ -76,3 +76,17 @@ tape('put a form and stream terms', function(test) {
       .on('end', function() {
         var expected = [ 'Agreement' ]
         test.deepEqual(terms, expected, 'term in list') }) }) })
+
+tape('put a form and stream blanks', function(test) {
+  test.plan(2)
+  var level = createTestStore()
+  var form = { content: [ { blank: 'Price' } ] }
+  level.putForm(form, function(error) {
+    test.ifError(error, 'no error on put')
+    var blanks = [ ]
+    level.createBlankStream()
+      .on('data', function(term) {
+        blanks.push(term) })
+      .on('end', function() {
+        var expected = [ 'Price' ]
+        test.deepEqual(blanks, expected, 'term in list') }) }) })
