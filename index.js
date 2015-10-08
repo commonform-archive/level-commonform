@@ -3,6 +3,7 @@ module.exports = LevelCommonForm
 var analyze = require('commonform-analyze')
 var asap = require('asap')
 var bytewise = require('bytewise/encoding/hex')
+var capitalize = require('./capitalize')
 var get = require('keyarray-get')
 var isChild = require('commonform-predicate').child
 var merkleize = require('commonform-merkleize')
@@ -115,9 +116,6 @@ function streamNames(prefix) {
     lt: encode([ prefix, undefined ]) }
   this.levelup.createReadStream(options).pipe(transform)
   return transform }
-
-function capitalize(string) {
-  return ( string.charAt(0).toUpperCase() + string.slice(1) ) }
 
 prototype.createDigestStream = function() {
   return streamNames.call(this, 'form') }
