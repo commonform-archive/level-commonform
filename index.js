@@ -45,12 +45,7 @@ prototype.getForm = function(digest, callback) {
       var form = parse(json)
       callback(null, form) } }) }
 
-function addNamesToBatch(batch, form) {
-  var analysis = analyze(form)
-  Object.keys(analysis.blanks)
-    .forEach(function(blank) {
-      batch.put(blankKey(blank), PLACEHOLDER_VALUE) })
-  // Compile a list of terms defined and used
+function addTermsToBatch(batch, analysis) {
   Object.keys(analysis.uses).reduce(
     function(terms, used) {
       return (
@@ -60,6 +55,16 @@ function addNamesToBatch(batch, form) {
     Object.keys(analysis.definitions))
     .forEach(function(term) {
       batch.put(termKey(term), PLACEHOLDER_VALUE) }) }
+
+function addBlanksToBatch(batch, analysis) {
+  Object.keys(analysis.blanks)
+    .forEach(function(blank) {
+      batch.put(blankKey(blank), PLACEHOLDER_VALUE) }) }
+
+function addNamesToBatch(batch, form) {
+  var analysis = analyze(form)
+  addTermsToBatch(batch, analysis)
+  addBlanksToBatch(batch, analysis) }
 
 function addFormsToBatch(batch, form, merkle) {
   var json = stringify(form)
