@@ -3,6 +3,7 @@ module.exports = LevelCommonForm
 var analyze = require('commonform-analyze')
 var asap = require('asap')
 var bytewise = require('bytewise/encoding/hex')
+var get = require('keyarray-get')
 var isChild = require('commonform-predicate').child
 var merkleize = require('commonform-merkleize')
 var serialize = require('commonform-serialize')
@@ -44,13 +45,24 @@ function batchKeys(batch, analysis, namespace) {
     .forEach(function(name) {
       batch.put(encode([ namespace, name ]), PLACEHOLDER_VALUE) }) }
 
-function addNamesToBatch(batch, form) {
+function addNamesToBatch(batch, form, merkle) {
   var analysis = analyze(form)
+  addDefinitionsToBatch(batch, analysis, merkle)
   batchKeys(batch, analysis.uses, 'term')
   batchKeys(batch, analysis.definitions, 'term')
   batchKeys(batch, analysis.headings, 'heading')
   batchKeys(batch, analysis.references, 'heading')
   batchKeys(batch, analysis.blanks, 'blank') }
+
+function addDefinitionsToBatch(batch, analysis, merkle) {
+  var definitions = analysis.definitions
+  Object.keys(definitions)
+    .forEach(function(term) {
+      definitions[term]
+        .forEach(function(keyArray) {
+          var digest = get(merkle, keyArray.slice(0, -2)).digest
+          var key = encode([ 'definition', term, digest ])
+          batch.put(key, PLACEHOLDER_VALUE) }) }) }
 
 function addFormsToBatch(batch, form, merkle) {
   var json = stringify(form)
@@ -72,7 +84,7 @@ prototype.putForm = function(form, callback) {
     var root = merkle.digest
     var batch = this.levelup.batch()
     addFormsToBatch(batch, form, merkle)
-    addNamesToBatch(batch, form)
+    addNamesToBatch(batch, form, merkle)
     batch.write(function(error) {
       if (error) {
         callback(error) }
@@ -111,5 +123,17 @@ prototype.createFormStream = function() {
     values: true,
     gt: formKey(null),
     lt: formKey(undefined) }
+  this.levelup.createReadStream(options).pipe(transform)
+  return transform }
+
+prototype.createDefinitionStream = function(term) {
+  var transform = through.obj(function(chunk, _, callback) {
+    var digest = decode(chunk)[2]
+    callback(null, digest) })
+  var options = {
+    keys: true,
+    values: false,
+    gt: encode([ 'definition', term, null ]),
+    lt: encode([ 'definition', term, undefined ]) }
   this.levelup.createReadStream(options).pipe(transform)
   return transform }

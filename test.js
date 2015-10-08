@@ -77,6 +77,20 @@ tape('put a form and stream terms', function(test) {
         var expected = [ 'Agreement' ]
         test.deepEqual(terms, expected, 'term in list') }) }) })
 
+tape('put a form and stream definitions', function(test) {
+  test.plan(2)
+  var level = createTestStore()
+  var form = { content: [ { definition: 'Agreement' } ] }
+  level.putForm(form, function(error, digest) {
+    test.ifError(error, 'no error on put')
+    var digests = [ ]
+    level.createDefinitionStream('Agreement')
+      .on('data', function(term) {
+        digests.push(term) })
+      .on('end', function() {
+        var expected = [ digest ]
+        test.deepEqual(digests, expected, 'digest in list') }) }) })
+
 tape('put a form and stream blanks', function(test) {
   test.plan(2)
   var level = createTestStore()

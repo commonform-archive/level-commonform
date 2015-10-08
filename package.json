@@ -21,6 +21,7 @@
     "commonform-predicate": "^0.4.3",
     "commonform-serialize": "^0.4.2",
     "commonform-validate": "^0.5.0",
+    "keyarray-get": "^0.1.0",
     "readable-stream": "^2.0.2",
     "through2": "^2.0.0"
   }
