@@ -20,12 +20,6 @@ var PLACEHOLDER_VALUE = ' '
 function formKey(digest) {
   return encode([ 'form', digest ]) }
 
-function termKey(term) {
-  return encode([ 'term', term ]) }
-
-function blankKey(blank) {
-  return encode([ 'blank', blank ]) }
-
 function LevelCommonForm(levelup) {
   if (!(this instanceof LevelCommonForm)) {
     return new LevelCommonForm(levelup) }
@@ -45,26 +39,18 @@ prototype.getForm = function(digest, callback) {
       var form = parse(json)
       callback(null, form) } }) }
 
-function addTermsToBatch(batch, analysis) {
-  Object.keys(analysis.uses).reduce(
-    function(terms, used) {
-      return (
-        ( terms.indexOf(used) < -1) ?
-          terms.concat(used) :
-          terms ) },
-    Object.keys(analysis.definitions))
-    .forEach(function(term) {
-      batch.put(termKey(term), PLACEHOLDER_VALUE) }) }
-
-function addBlanksToBatch(batch, analysis) {
-  Object.keys(analysis.blanks)
-    .forEach(function(blank) {
-      batch.put(blankKey(blank), PLACEHOLDER_VALUE) }) }
+function batchKeys(batch, analysis, namespace) {
+  Object.keys(analysis)
+    .forEach(function(name) {
+      batch.put(encode([ namespace, name ]), PLACEHOLDER_VALUE) }) }
 
 function addNamesToBatch(batch, form) {
   var analysis = analyze(form)
-  addTermsToBatch(batch, analysis)
-  addBlanksToBatch(batch, analysis) }
+  batchKeys(batch, analysis.uses, 'term')
+  batchKeys(batch, analysis.definitions, 'term')
+  batchKeys(batch, analysis.headings, 'heading')
+  batchKeys(batch, analysis.references, 'heading')
+  batchKeys(batch, analysis.blanks, 'blank') }
 
 function addFormsToBatch(batch, form, merkle) {
   var json = stringify(form)
@@ -107,7 +93,7 @@ function streamNames(namespace) {
 function capitalize(string) {
   return ( string.charAt(0).toUpperCase() + string.slice(1) ) }
 
-( [ 'term', 'blank' ] ).forEach(function(namespace) {
+( [ 'heading', 'term', 'blank' ] ).forEach(function(namespace) {
   var capitalized = capitalize(namespace)
   prototype['create' + capitalized + 'Stream'] = function() {
     return streamNames.call(this, namespace) } })

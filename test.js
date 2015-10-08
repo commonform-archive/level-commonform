@@ -90,3 +90,21 @@ tape('put a form and stream blanks', function(test) {
       .on('end', function() {
         var expected = [ 'Price' ]
         test.deepEqual(blanks, expected, 'term in list') }) }) })
+
+tape('put a form and stream headings', function(test) {
+  test.plan(2)
+  var level = createTestStore()
+  var form = {
+    content: [
+      { heading: 'Delegation',
+        form: { content: [ 'More test' ] } },
+      { reference: 'Assignment' } ] }
+  level.putForm(form, function(error) {
+    test.ifError(error, 'no error on put')
+    var headings = [ ]
+    level.createHeadingStream()
+      .on('data', function(term) {
+        headings.push(term) })
+      .on('end', function() {
+        var expected = [ 'Assignment', 'Delegation' ]
+        test.deepEqual(headings, expected, 'term in list') }) }) })
