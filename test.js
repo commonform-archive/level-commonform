@@ -18,7 +18,20 @@ tape('put and get a form', function(test) {
   var level = createTestStore()
   var form = { content: [ 'This is a test' ] }
   level.putForm(form, function(error, digest) {
-    test.ifError(error)
+    test.ifError(error, 'no error on put')
     level.getForm(digest, function(error, got) {
-      test.ifError(error)
-      test.deepEqual(form, got) }) }) })
+      test.ifError(error, 'no error on get')
+      test.deepEqual(form, got, 'get the form back') }) }) })
+
+tape('put a form and stream digests', function(test) {
+  test.plan(2)
+  var level = createTestStore()
+  var form = { content: [ 'This is a test' ] }
+  level.putForm(form, function(error, digest) {
+    test.ifError(error, 'no error on put')
+    var digests = [ ]
+    level.createDigestStream()
+      .on('data', function(digest) {
+        digests.push(digest) })
+      .on('end', function() {
+        test.deepEqual(digests, [ digest ], 'digest in list') }) }) })

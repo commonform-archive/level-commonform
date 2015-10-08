@@ -33,3 +33,6 @@ prototype.putForm = function(form, callback) {
         callback(error) }
       else {
         callback(null, digest) } }) } }
+
+prototype.createDigestStream = function() {
+  return this.levelup.createKeyStream() }
