@@ -68,25 +68,29 @@ function batchRelations(batch, analysis, merkle, relation) {
 
 function addNamesToBatch(batch, form, merkle) {
   var analysis = analyze(form)
-  RELATIONS.forEach(function(relation) {
-    var prefix = relation.prefix
-    var subAnalysis = analysis[relation.analysis]
-    batchRelations(batch, subAnalysis, merkle, prefix) })
-  NAMESPACES.forEach(function(namespace) {
-    var prefix = namespace.prefix
-    namespace.analyses.forEach(function(analysisKey) {
-      var subAnalysis = analysis[analysisKey]
-      batchKeys(batch, subAnalysis, prefix) }) }) }
+  RELATIONS
+    .forEach(function(relation) {
+      var prefix = relation.prefix
+      var subAnalysis = analysis[relation.analysis]
+      batchRelations(batch, subAnalysis, merkle, prefix) })
+  NAMESPACES
+    .forEach(function(namespace) {
+      var prefix = namespace.prefix
+      namespace.analyses
+        .forEach(function(analysisKey) {
+          var subAnalysis = analysis[analysisKey]
+          batchKeys(batch, subAnalysis, prefix) }) }) }
 
 function addFormsToBatch(batch, form, merkle) {
   var json = stringify(form)
   var key = formKey(merkle.digest)
   batch.put(key, json)
-  form.content.forEach(function(element, index) {
-    if (isChild(element)) {
-      var childForm = element.form
-      var childMerkle = merkle.content[index]
-      addFormsToBatch(batch, childForm, childMerkle) } }) }
+  form.content
+    .forEach(function(element, index) {
+      if (isChild(element)) {
+        var childForm = element.form
+        var childMerkle = merkle.content[index]
+        addFormsToBatch(batch, childForm, childMerkle) } }) }
 
 prototype.putForm = function(form, callback) {
   var valid = validate.form(form)
