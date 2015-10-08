@@ -19,15 +19,15 @@ prototype.createFormStream = require('./public/create-form-stream')
 
 // Namespace streams
 
-prototype.createDigestStream = function() {
-  return streamNames.call(this, 'form') }
+prototype.createDigestStream = function(startingWith) {
+  return streamNames.call(this, 'form', startingWith) }
 
 meta.namespaces
   .map(function(namespace) {
     return namespace.prefix })
   .forEach(function(prefix) {
-    prototype[streamCreatorName(prefix)] = function() {
-      return streamNames.call(this, prefix) } })
+    prototype[streamCreatorName(prefix)] = function(startingWith) {
+      return streamNames.call(this, prefix, startingWith) } })
 
 // Relation streams
 

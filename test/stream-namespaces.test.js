@@ -14,6 +14,19 @@ tape('put a form and stream digests', function(test) {
       .on('end', function() {
         test.deepEqual(digests, [ digest ], 'digest in list') }) }) })
 
+tape('put a form and stream digests with a prefix', function(test) {
+  test.plan(2)
+  var level = testStore()
+  var form = { content: [ 'This is a test' ] }
+  level.putForm(form, function(error) {
+    test.ifError(error, 'no error on put')
+    var digests = [ ]
+    level.createDigestStream('fff')
+      .on('data', function(digest) {
+        digests.push(digest) })
+      .on('end', function() {
+        test.deepEqual(digests, [ ]) }) }) })
+
 tape('put a form and stream terms', function(test) {
   test.plan(2)
   var level = testStore()
@@ -28,6 +41,24 @@ tape('put a form and stream terms', function(test) {
         var expected = [ 'Agreement' ]
         test.deepEqual(terms, expected, 'term in list') }) }) })
 
+tape('stream terms with prefix', function(test) {
+  test.plan(2)
+  var level = testStore()
+  var form = {
+    content: [
+      { definition: 'Alpha' },
+      { use: 'Beta' },
+      { definition: 'Gamma' } ] }
+  level.putForm(form, function(error) {
+    test.ifError(error, 'no error on put')
+    var terms = [ ]
+    level.createTermStream('B')
+      .on('data', function(term) {
+        terms.push(term) })
+      .on('end', function() {
+        var expected = [ 'Beta', 'Gamma' ]
+        test.deepEqual(terms, expected) }) }) })
+
 tape('put a form and stream blanks', function(test) {
   test.plan(2)
   var level = testStore()
@@ -41,6 +72,24 @@ tape('put a form and stream blanks', function(test) {
       .on('end', function() {
         var expected = [ 'Price' ]
         test.deepEqual(blanks, expected, 'term in list') }) }) })
+
+tape('stream blanks with prefix', function(test) {
+  test.plan(2)
+  var level = testStore()
+  var form = {
+    content: [
+      { blank: 'Alpha' },
+      { blank: 'Beta' },
+      { blank: 'Gamma' } ] }
+  level.putForm(form, function(error) {
+    test.ifError(error, 'no error on put')
+    var blanks = [ ]
+    level.createBlankStream('B')
+      .on('data', function(blank) {
+        blanks.push(blank) })
+      .on('end', function() {
+        var expected = [ 'Beta', 'Gamma' ]
+        test.deepEqual(blanks, expected) }) }) })
 
 tape('put a form and stream headings', function(test) {
   test.plan(2)
@@ -59,3 +108,22 @@ tape('put a form and stream headings', function(test) {
       .on('end', function() {
         var expected = [ 'Assignment', 'Delegation' ]
         test.deepEqual(headings, expected, 'term in list') }) }) })
+
+tape('stream headings with prefix', function(test) {
+  test.plan(2)
+  var level = testStore()
+  var form = {
+    content: [
+      { reference: 'Alpha' },
+      { reference: 'Beta' },
+      { reference: 'Gamma' } ] }
+  level.putForm(form, function(error) {
+    test.ifError(error, 'no error on put')
+    var references = [ ]
+    level.createHeadingStream('B')
+      .on('data', function(reference) {
+        references.push(reference) })
+      .on('end', function() {
+        var expected = [ 'Beta', 'Gamma' ]
+        test.deepEqual(references, expected) }) }) })
+
