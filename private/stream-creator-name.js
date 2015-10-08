@@ -1,7 +1,7 @@
-module.exports = function streamCreatorName(string) {
-  return (
-    'create' +
-    string.charAt(0).toUpperCase() +
-    string.slice(1) +
-    'Stream' ) }
+module.exports = streamCreatorName
 
+function streamCreatorName(string) {
+  return ( 'create' + capitalize(string) + 'Stream' ) }
+
+function capitalize(string) {
+    return ( string.charAt(0).toUpperCase() + string.slice(1) ) }

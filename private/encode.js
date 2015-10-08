@@ -1,2 +1,1 @@
-var bytewise = require('bytewise/encoding/hex')
-module.exports = bytewise.encode
+module.exports = require('bytewise/encoding/hex').encode

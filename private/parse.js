@@ -1,2 +1,1 @@
-var serialize = require('commonform-serialize')
-module.exports = serialize.parse
+module.exports = require('commonform-serialize').parse
