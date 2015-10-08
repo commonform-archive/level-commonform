@@ -31,3 +31,10 @@ tape('put a form and get its child', function(test) {
       test.ifError(error, 'no error on get')
       test.deepEqual(got, child, 'get the child back') }) }) })
 
+tape('get nonexistent form', function(test) {
+  test.plan(1)
+  var level = testStore()
+  var digest = new Array(65).join('a')
+  level.getForm(digest, function(error, form) {
+    test.equal(form, undefined) }) })
+
