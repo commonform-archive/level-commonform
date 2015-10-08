@@ -16,7 +16,7 @@ var stringify = serialize.stringify
 var decode = bytewise.decode
 var encode = bytewise.encode
 
-var PLACEHOLDER_VALUE = ' '
+var PLACEHOLDER_VALUE = undefined
 
 var RELATIONS = [
   { prefix: 'definition', analysis: 'definitions' },
