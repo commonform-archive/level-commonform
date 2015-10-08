@@ -4,6 +4,7 @@ var asap = require('asap')
 var isChild = require('commonform-predicate').child
 var merkleize = require('commonform-merkleize')
 var serialize = require('commonform-serialize')
+var through = require('through2')
 var validate = require('commonform-validate')
 
 function LevelCommonForm(levelup) {
@@ -51,3 +52,9 @@ prototype.putForm = function(form, callback) {
 
 prototype.createDigestStream = function() {
   return this.levelup.createKeyStream() }
+
+prototype.createFormStream = function() {
+  var transform = through.obj(function(chunk, _, callback) {
+    callback(null, { digest: chunk.key, form: serialize.parse(chunk.value) }) })
+  this.levelup.createReadStream().pipe(transform)
+  return transform }
