@@ -7,6 +7,9 @@ var serialize = require('commonform-serialize')
 var through = require('through2')
 var validate = require('commonform-validate')
 
+var parse = serialize.parse
+var stringify = serialize.stringify
+
 function LevelCommonForm(levelup) {
   if (!(this instanceof LevelCommonForm)) {
     return new LevelCommonForm(levelup) }
@@ -22,11 +25,11 @@ prototype.getForm = function(digest, callback) {
       else {
         callback(error) } }
     else {
-      var form = serialize.parse(json)
+      var form = parse(json)
       callback(null, form) } }) }
 
 function addToBatch(batch, form, merkle) {
-  var json = serialize.stringify(form)
+  var json = stringify(form)
   batch.put(merkle.digest, json)
   form.content.forEach(function(element, index) {
     if (isChild(element)) {
@@ -55,6 +58,6 @@ prototype.createDigestStream = function() {
 
 prototype.createFormStream = function() {
   var transform = through.obj(function(chunk, _, callback) {
-    callback(null, { digest: chunk.key, form: serialize.parse(chunk.value) }) })
+    callback(null, { digest: chunk.key, form: parse(chunk.value) }) })
   this.levelup.createReadStream().pipe(transform)
   return transform }
