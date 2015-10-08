@@ -1,0 +1,18 @@
+{ "relations": [
+    { "prefix": "definition",
+      "analysis": "definitions" },
+    { "prefix": "use",
+      "analysis": "uses" },
+    { "prefix": "reference",
+      "analysis": "references" },
+    { "prefix": "insertion",
+      "analysis": "blanks" },
+    { "prefix": "inclusion",
+      "analysis": "headings" } ],
+  "namespaces": [
+    { "prefix": "heading",
+      "analyses": [ "headings", "references" ] },
+    { "prefix": "term",
+      "analyses": [ "definitions", "uses" ] },
+    { "prefix": "blank",
+      "analyses": [ "blanks" ] } ] }

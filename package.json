@@ -11,7 +11,7 @@
     "tape": "^4.2.1"
   },
   "scripts": {
-    "test": "tape test.js"
+    "test": "tape test/*.test.js"
   },
   "dependencies": {
     "asap": "^2.0.3",
