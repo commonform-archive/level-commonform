@@ -6,12 +6,13 @@
   "repository": "kemitchell/level-commonform.js",
   "license": "MIT",
   "devDependencies": {
+    "covert": "^1.1.0",
     "levelup": "^1.2.1",
     "memdown": "^1.1.0",
     "tape": "^4.2.1"
   },
   "scripts": {
-    "test": "tape test/*.test.js"
+    "test": "covert test/*.test.js"
   },
   "dependencies": {
     "asap": "^2.0.3",
