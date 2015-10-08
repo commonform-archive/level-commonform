@@ -16,7 +16,7 @@ var stringify = serialize.stringify
 var decode = bytewise.decode
 var encode = bytewise.encode
 
-var PLACEHOLDER_VALUE = undefined
+var NO_VALUE = undefined
 
 var RELATIONS = [
   { prefix: 'definition', analysis: 'definitions' },
@@ -55,7 +55,7 @@ prototype.getForm = function(digest, callback) {
 function batchKeys(batch, analysis, prefix) {
   Object.keys(analysis)
     .forEach(function(name) {
-      batch.put(encode([ prefix, name ]), PLACEHOLDER_VALUE) }) }
+      batch.put(encode([ prefix, name ]), NO_VALUE) }) }
 
 function batchRelations(batch, analysis, merkle, relation) {
   Object.keys(analysis)
@@ -64,7 +64,7 @@ function batchRelations(batch, analysis, merkle, relation) {
         .forEach(function(keyArray) {
           var digest = get(merkle, keyArray.slice(0, -2)).digest
           var key = encode([ relation, name, digest ])
-          batch.put(key, PLACEHOLDER_VALUE) }) }) }
+          batch.put(key, NO_VALUE) }) }) }
 
 function addNamesToBatch(batch, form, merkle) {
   var analysis = analyze(form)
@@ -89,7 +89,7 @@ function addFormsToBatch(batch, form, merkle, parents) {
   batch.put(key, json)
   parents
     .forEach(function(parent) {
-      batch.put(encode([ 'parent', digest, parent ]), PLACEHOLDER_VALUE) })
+      batch.put(encode([ 'parent', digest, parent ]), NO_VALUE) })
   form.content
     .forEach(function(element, index) {
       if (isChild(element)) {
