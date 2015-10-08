@@ -96,7 +96,10 @@ function batchRelations(batch, analysis, merkle, relation) {
           // about what form the definition appears in, and not specifically
           // where within that form, ignore the last two elements of the key
           // array (`[ "content", index ]`).
-          var formKeyArray = keyArray.slice(0, -2)
+          var formKeyArray = keyArray
+            .slice(0, -2)
+            .filter(function(element) {
+              return ( element !== 'form' ) })
           var digest = get(merkle, formKeyArray).digest
           // A relation between a form, by deigest, and a name, like
           // "Indemnification", is stored entirely by the existence of a
