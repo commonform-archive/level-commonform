@@ -3,6 +3,7 @@ module.exports = LevelCommonForm
 var asap = require('asap')
 var isChild = require('commonform-predicate').child
 var merkleize = require('commonform-merkleize')
+var serialize = require('commonform-serialize')
 var validate = require('commonform-validate')
 
 function LevelCommonForm(levelup) {
@@ -20,11 +21,11 @@ prototype.getForm = function(digest, callback) {
       else {
         callback(error) } }
     else {
-      var form = JSON.parse(json)
+      var form = serialize.parse(json)
       callback(null, form) } }) }
 
 function addToBatch(batch, form, merkle) {
-  var json = JSON.stringify(form)
+  var json = serialize.stringify(form)
   batch.put(merkle.digest, json)
   form.content.forEach(function(element, index) {
     if (isChild(element)) {
