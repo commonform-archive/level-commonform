@@ -46,9 +46,14 @@ function addFormsToBatch(batch, form, merkle, parents) {
   var levelKey = formKey(digest)
   batch.put(levelKey, stringified)
   // Store relations to this form's parents.
+  var parentCount = parents.length
   parents
-    .forEach(function(parent) {
-      batch.put(encode([ 'parent', digest, parent ]), NO_VALUE) })
+    .forEach(function(parent, index) {
+      // Like other relations, the fact that one form is a parent of another is
+      // stored entirely by the existence of a LevelUP key.
+      var levelKey = encode([ 'parent', digest, parent, depth])
+      var depth = ( parentCount - index )
+      batch.put(levelKey, NO_VALUE) })
   // The parents of any child forms within this form will include this form's
   // parents, plus this form's digest.
   var childParents = parents.concat(digest)
