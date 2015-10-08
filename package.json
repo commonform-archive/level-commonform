@@ -20,7 +20,7 @@
     "memdown": "^1.1.0",
     "tape": "^4.2.1"
   },
-  "license": "MIT",
+  "license": "Apache-2.0",
   "repository": "kemitchell/level-commonform.js",
   "scripts": {
     "coverage": "covert test/*.test.js",
