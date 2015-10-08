@@ -93,16 +93,27 @@ prototype.putForm = function(form, callback) {
       else {
         callback(null, root) } }) } }
 
-prototype.createDigestStream = function() {
+function streamNames(namespace) {
   var transform = through.obj(function(chunk, _, callback) {
     callback(null, decode(chunk)[1]) })
   var options = {
     keys: true,
     values: false,
-    gt: formKey(null),
-    lt: formKey(undefined) }
+    gt: encode([ namespace, null ]),
+    lt: encode([ namespace, undefined ]) }
   this.levelup.createReadStream(options).pipe(transform)
   return transform }
+
+function capitalize(string) {
+  return ( string.charAt(0).toUpperCase() + string.slice(1) ) }
+
+( [ 'term', 'blank' ] ).forEach(function(namespace) {
+  var capitalized = capitalize(namespace)
+  prototype['create' + capitalized + 'Stream'] = function() {
+    return streamNames.call(this, namespace) } })
+
+prototype.createDigestStream = function() {
+  return streamNames.call(this, 'form') }
 
 prototype.createFormStream = function() {
   var transform = through.obj(function(chunk, _, callback) {
@@ -114,27 +125,5 @@ prototype.createFormStream = function() {
     values: true,
     gt: formKey(null),
     lt: formKey(undefined) }
-  this.levelup.createReadStream(options).pipe(transform)
-  return transform }
-
-prototype.createTermStream = function() {
-  var transform = through.obj(function(chunk, _, callback) {
-    callback(null, decode(chunk)[1]) })
-  var options = {
-    keys: true,
-    values: false,
-    gt: termKey(null),
-    lt: termKey(undefined) }
-  this.levelup.createReadStream(options).pipe(transform)
-  return transform }
-
-prototype.createBlankStream = function() {
-  var transform = through.obj(function(chunk, _, callback) {
-    callback(null, decode(chunk)[1]) })
-  var options = {
-    keys: true,
-    values: false,
-    gt: blankKey(null),
-    lt: blankKey(undefined) }
   this.levelup.createReadStream(options).pipe(transform)
   return transform }
