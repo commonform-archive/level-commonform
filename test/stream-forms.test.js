@@ -14,4 +14,3 @@ tape('put a form and stream forms', function(test) {
       .on('end', function() {
         var expected = [ { digest: digest, form: form } ]
         test.deepEqual(records, expected, 'form in list') }) }) })
-

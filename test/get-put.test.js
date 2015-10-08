@@ -37,4 +37,3 @@ tape('get nonexistent form', function(test) {
   var digest = new Array(65).join('a')
   level.getForm(digest, function(error, form) {
     test.equal(form, undefined) }) })
-

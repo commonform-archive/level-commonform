@@ -126,4 +126,3 @@ tape('stream headings with prefix', function(test) {
       .on('end', function() {
         var expected = [ 'Beta', 'Gamma' ]
         test.deepEqual(references, expected) }) }) })
-
