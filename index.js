@@ -18,6 +18,18 @@ var encode = bytewise.encode
 
 var PLACEHOLDER_VALUE = ' '
 
+var RELATIONS = [
+  { prefix: 'definition', analysis: 'definitions' },
+  { prefix: 'use',        analysis: 'uses' },
+  { prefix: 'reference',  analysis: 'references' },
+  { prefix: 'insertion',  analysis: 'blanks' },
+  { prefix: 'inclusion',  analysis: 'headings' } ]
+
+var NAMESPACES = [
+  { prefix: 'heading', analyses: [ 'headings', 'references' ] },
+  { prefix: 'term',    analyses: [ 'definitions', 'uses' ] },
+  { prefix: 'blank',   analyses: [ 'blanks' ] } ]
+
 function formKey(digest) {
   return encode([ 'form', digest ]) }
 
@@ -40,29 +52,31 @@ prototype.getForm = function(digest, callback) {
       var form = parse(json)
       callback(null, form) } }) }
 
-function batchKeys(batch, analysis, namespace) {
+function batchKeys(batch, analysis, prefix) {
   Object.keys(analysis)
     .forEach(function(name) {
-      batch.put(encode([ namespace, name ]), PLACEHOLDER_VALUE) }) }
+      batch.put(encode([ prefix, name ]), PLACEHOLDER_VALUE) }) }
+
+function batchRelations(batch, analysis, merkle, relation) {
+  Object.keys(analysis)
+    .forEach(function(name) {
+      analysis[name]
+        .forEach(function(keyArray) {
+          var digest = get(merkle, keyArray.slice(0, -2)).digest
+          var key = encode([ relation, name, digest ])
+          batch.put(key, PLACEHOLDER_VALUE) }) }) }
 
 function addNamesToBatch(batch, form, merkle) {
   var analysis = analyze(form)
-  addDefinitionsToBatch(batch, analysis, merkle)
-  batchKeys(batch, analysis.uses, 'term')
-  batchKeys(batch, analysis.definitions, 'term')
-  batchKeys(batch, analysis.headings, 'heading')
-  batchKeys(batch, analysis.references, 'heading')
-  batchKeys(batch, analysis.blanks, 'blank') }
-
-function addDefinitionsToBatch(batch, analysis, merkle) {
-  var definitions = analysis.definitions
-  Object.keys(definitions)
-    .forEach(function(term) {
-      definitions[term]
-        .forEach(function(keyArray) {
-          var digest = get(merkle, keyArray.slice(0, -2)).digest
-          var key = encode([ 'definition', term, digest ])
-          batch.put(key, PLACEHOLDER_VALUE) }) }) }
+  RELATIONS.forEach(function(relation) {
+    var prefix = relation.prefix
+    var subAnalysis = analysis[relation.analysis]
+    batchRelations(batch, subAnalysis, merkle, prefix) })
+  NAMESPACES.forEach(function(namespace) {
+    var prefix = namespace.prefix
+    namespace.analyses.forEach(function(analysisKey) {
+      var subAnalysis = analysis[analysisKey]
+      batchKeys(batch, subAnalysis, prefix) }) }) }
 
 function addFormsToBatch(batch, form, merkle) {
   var json = stringify(form)
@@ -91,27 +105,47 @@ prototype.putForm = function(form, callback) {
       else {
         callback(null, root) } }) } }
 
-function streamNames(namespace) {
+function streamNames(prefix) {
   var transform = through.obj(function(chunk, _, callback) {
     callback(null, decode(chunk)[1]) })
   var options = {
     keys: true,
     values: false,
-    gt: encode([ namespace, null ]),
-    lt: encode([ namespace, undefined ]) }
+    gt: encode([ prefix, null ]),
+    lt: encode([ prefix, undefined ]) }
   this.levelup.createReadStream(options).pipe(transform)
   return transform }
 
 function capitalize(string) {
   return ( string.charAt(0).toUpperCase() + string.slice(1) ) }
 
-( [ 'heading', 'term', 'blank' ] ).forEach(function(namespace) {
-  var capitalized = capitalize(namespace)
-  prototype['create' + capitalized + 'Stream'] = function() {
-    return streamNames.call(this, namespace) } })
-
 prototype.createDigestStream = function() {
   return streamNames.call(this, 'form') }
+
+NAMESPACES
+  .map(function(namespace) {
+    return namespace.prefix })
+  .forEach(function(prefix) {
+    var capitalized = capitalize(prefix)
+    prototype['create' + capitalized + 'Stream'] = function() {
+      return streamNames.call(this, prefix) } })
+
+RELATIONS
+  .map(function(relation) {
+    return relation.prefix })
+  .forEach(function(relation) {
+    var capitalized = capitalize(relation)
+    prototype['create' + capitalized + 'Stream'] = function(name) {
+      var transform = through.obj(function(chunk, _, callback) {
+        var digest = decode(chunk)[2]
+        callback(null, digest) })
+      var options = {
+        keys: true,
+        values: false,
+        gt: encode([ relation, name, null ]),
+        lt: encode([ relation, name, undefined ]) }
+      this.levelup.createReadStream(options).pipe(transform)
+      return transform } })
 
 prototype.createFormStream = function() {
   var transform = through.obj(function(chunk, _, callback) {
@@ -123,17 +157,5 @@ prototype.createFormStream = function() {
     values: true,
     gt: formKey(null),
     lt: formKey(undefined) }
-  this.levelup.createReadStream(options).pipe(transform)
-  return transform }
-
-prototype.createDefinitionStream = function(term) {
-  var transform = through.obj(function(chunk, _, callback) {
-    var digest = decode(chunk)[2]
-    callback(null, digest) })
-  var options = {
-    keys: true,
-    values: false,
-    gt: encode([ 'definition', term, null ]),
-    lt: encode([ 'definition', term, undefined ]) }
   this.levelup.createReadStream(options).pipe(transform)
   return transform }

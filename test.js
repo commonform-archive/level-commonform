@@ -91,6 +91,79 @@ tape('put a form and stream definitions', function(test) {
         var expected = [ digest ]
         test.deepEqual(digests, expected, 'digest in list') }) }) })
 
+tape('put a form and stream uses', function(test) {
+  test.plan(2)
+  var level = createTestStore()
+  var form = { content: [ { use: 'Agreement' } ] }
+  level.putForm(form, function(error, digest) {
+    test.ifError(error, 'no error on put')
+    var digests = [ ]
+    level.createUseStream('Agreement')
+      .on('data', function(term) {
+        digests.push(term) })
+      .on('end', function() {
+        var expected = [ digest ]
+        test.deepEqual(digests, expected, 'digest in list') }) }) })
+
+tape('put a form and stream references', function(test) {
+  test.plan(2)
+  var level = createTestStore()
+  var form = { content: [ { reference: 'Indemnity' } ] }
+  level.putForm(form, function(error, digest) {
+    test.ifError(error, 'no error on put')
+    var digests = [ ]
+    level.createReferenceStream('Indemnity')
+      .on('data', function(term) {
+        digests.push(term) })
+      .on('end', function() {
+        var expected = [ digest ]
+        test.deepEqual(digests, expected, 'digest in list') }) }) })
+
+tape('put a form and stream insertions', function(test) {
+  test.plan(2)
+  var level = createTestStore()
+  var form = { content: [ { blank: 'Name' } ] }
+  level.putForm(form, function(error, digest) {
+    test.ifError(error, 'no error on put')
+    var digests = [ ]
+    level.createInsertionStream('Name')
+      .on('data', function(term) {
+        digests.push(term) })
+      .on('end', function() {
+        var expected = [ digest ]
+        test.deepEqual(digests, expected, 'digest in list') }) }) })
+
+tape('put a form and stream inclusions', function(test) {
+  test.plan(2)
+  var level = createTestStore()
+  var form = {
+    content: [
+      { heading: 'Assignment',
+        form: { content: [ 'Some text' ] } } ] }
+  level.putForm(form, function(error, digest) {
+    test.ifError(error, 'no error on put')
+    var digests = [ ]
+    level.createInclusionStream('Assignment')
+      .on('data', function(term) {
+        digests.push(term) })
+      .on('end', function() {
+        var expected = [ digest ]
+        test.deepEqual(digests, expected, 'digest in list') }) }) })
+
+tape('put a form and stream insertions', function(test) {
+  test.plan(2)
+  var level = createTestStore()
+  var form = { content: [ { blank: 'Name' } ] }
+  level.putForm(form, function(error, digest) {
+    test.ifError(error, 'no error on put')
+    var digests = [ ]
+    level.createInsertionStream('Name')
+      .on('data', function(term) {
+        digests.push(term) })
+      .on('end', function() {
+        var expected = [ digest ]
+        test.deepEqual(digests, expected, 'digest in list') }) }) })
+
 tape('put a form and stream blanks', function(test) {
   test.plan(2)
   var level = createTestStore()
